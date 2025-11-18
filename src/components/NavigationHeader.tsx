@@ -18,11 +18,11 @@ export function NavigationHeader() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🐔</span>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold leading-tight">Mikaela</h1>
-              <p className="text-xs opacity-90 hidden sm:block">La Pollita Millonaria</p>
-            </div>
+            <img 
+              src="https://i.imgur.com/YourLogoID.png" 
+              alt="Mikaela La Pollita Millonaria" 
+              className="h-12 md:h-16 w-auto object-contain"
+            />
           </div>
 
           <nav className="hidden md:flex items-center gap-6">

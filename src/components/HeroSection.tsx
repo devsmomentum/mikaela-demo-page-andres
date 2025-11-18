@@ -12,12 +12,13 @@ export function HeroSection() {
             <span>Lotería Oficial Venezolana</span>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 text-foreground">
-            Mikaela 🐔
-          </h1>
-          <p className="text-3xl md:text-5xl font-bold mb-6 text-primary">
-            La Pollita Millonaria
-          </p>
+          <div className="mb-8 flex justify-center">
+            <img 
+              src="https://i.imgur.com/YourLogoID.png" 
+              alt="Mikaela La Pollita Millonaria" 
+              className="w-full max-w-2xl h-auto object-contain"
+            />
+          </div>
           
           <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
             Tu oportunidad de ganar cada día con <span className="font-semibold text-primary">10 sorteos diarios</span> y premios extraordinarios. ¡Consulta los resultados y participa!
