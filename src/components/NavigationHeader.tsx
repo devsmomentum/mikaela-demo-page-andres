@@ -1,6 +1,7 @@
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import logo from '@/assets/images/Logo_tipografico_Mikaela_La_Pollita_Millonaria-01.png'
 
 export function NavigationHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -19,7 +20,7 @@ export function NavigationHeader() {
         <div className="flex items-center justify-between h-16 md:h-20">
           <div className="flex items-center gap-3">
             <img 
-              src="https://i.imgur.com/YourLogoID.png" 
+              src={logo} 
               alt="Mikaela La Pollita Millonaria" 
               className="h-12 md:h-16 w-auto object-contain"
             />

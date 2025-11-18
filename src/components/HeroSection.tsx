@@ -1,4 +1,5 @@
 import { Trophy, Sparkles } from 'lucide-react'
+import logo from '@/assets/images/BLANCO_Logo_de_Mikaela_La_Pollita_Millonaria-01.png'
 
 export function HeroSection() {
   return (
@@ -14,7 +15,7 @@ export function HeroSection() {
           
           <div className="mb-8 flex justify-center">
             <img 
-              src="https://i.imgur.com/YourLogoID.png" 
+              src={logo} 
               alt="Mikaela La Pollita Millonaria" 
               className="w-full max-w-2xl h-auto object-contain"
             />
