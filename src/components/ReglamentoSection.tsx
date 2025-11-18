@@ -11,7 +11,7 @@ export function ReglamentoSection() {
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
             Reglamento Oficial
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-foreground/80 text-lg max-w-2xl mx-auto">
             Conoce las reglas, premios y modalidades de juego. Operado por Daga.corporación22 C.A. y avalado por la Lotería de Caracas.
           </p>
         </div>
@@ -26,7 +26,7 @@ export function ReglamentoSection() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground">La Pollita (Sorteo Ordinario)</h3>
-                    <p className="text-sm text-muted-foreground">10 sorteos diarios</p>
+                    <p className="text-foreground/80 text-lg max-w-2xl mx-auto">10 sorteos diarios</p>
                   </div>
                 </div>
               </AccordionTrigger>
@@ -68,7 +68,7 @@ export function ReglamentoSection() {
                     </div>
 
                     <div className="pt-4 border-t border-primary/10">
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-foreground/80 text-lg max-w-2xl mx-auto">
                         <span className="font-medium">⏰ Caducidad:</span> Los premios deben reclamarse dentro de 5 días continuos desde el sorteo.
                       </p>
                     </div>
@@ -85,7 +85,7 @@ export function ReglamentoSection() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground">Pollo Lleno (Extraordinario)</h3>
-                    <p className="text-sm text-muted-foreground">Sorteo nocturno con Jackpot</p>
+                    <p className="text-foreground/80 text-lg max-w-2xl mx-auto">Sorteo nocturno con Jackpot</p>
                   </div>
                 </div>
               </AccordionTrigger>
@@ -132,7 +132,7 @@ export function ReglamentoSection() {
                     </div>
 
                     <div className="pt-4 border-t border-accent/10">
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-foreground/80 text-lg max-w-2xl mx-auto">
                         <span className="font-medium">💰 Acumulado:</span> Si no hay ganador de 6 aciertos, el premio se acumula para el siguiente día.
                       </p>
                     </div>
@@ -149,7 +149,7 @@ export function ReglamentoSection() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground">Pollo Lleno Millonario (Especial)</h3>
-                    <p className="text-sm text-muted-foreground">Sorteo mensual con cartón pre-impreso</p>
+                    <p className="text-foreground/80 text-lg max-w-2xl mx-auto">Sorteo mensual con cartón pre-impreso</p>
                   </div>
                 </div>
               </AccordionTrigger>
@@ -200,7 +200,7 @@ export function ReglamentoSection() {
                     </div>
 
                     <div className="pt-4 border-t border-secondary/10">
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-foreground/80 text-lg max-w-2xl mx-auto">
                         <span className="font-medium">📋 Nota:</span> Los cartones son pre-impresos y deben adquirirse en puntos de venta autorizados.
                       </p>
                     </div>
