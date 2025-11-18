@@ -1,5 +1,6 @@
 import { Heart } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
+import logo from '@/assets/images/Logo_tipografico_Mikaela_La_Pollita_Millonaria-01.png'
 
 export function Footer() {
   return (
@@ -8,7 +9,7 @@ export function Footer() {
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-3xl">🐔</span>
+              <img src={logo} alt="Mikaela La Pollita Millonaria" className="h-10 w-auto object-contain" />
               <div>
                 <h3 className="font-bold text-lg">Mikaela</h3>
                 <p className="text-xs opacity-80">La Pollita Millonaria</p>
