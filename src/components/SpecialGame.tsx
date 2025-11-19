@@ -9,6 +9,7 @@ import { lotteryApi, SpecialGameResult } from '@/services/lottery-api'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import logo from '@/assets/images/Logo_tipografico_Mikaela_La_Pollita_Millonaria-01.png'
 
 export function SpecialGame() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
@@ -241,90 +242,111 @@ export function SpecialGame() {
             </div>
 
             {/* Result Display */}
-            <div className="w-full lg:w-2/3 flex justify-center">
-              {isLoading ? (
-                <div className="text-center py-12 text-primary-foreground/50">
-                  <Loader2 className="h-16 w-16 mx-auto mb-4 animate-spin" />
-                  <p>Buscando resultados...</p>
+            <div className="flex-1 w-full relative min-h-[500px] rounded-3xl border border-white/10 bg-white/5 overflow-hidden flex items-center justify-center p-8 group">
+              {/* Decorative Background with Logo and Effects */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/5 via-transparent to-purple-900/20"></div>
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-yellow-400/10 blur-[80px] rounded-full group-hover:bg-yellow-400/20 transition-colors duration-700"></div>
+                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/30 blur-[80px] rounded-full"></div>
+                
+                {/* Watermark Logo */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-[0.07] transform -rotate-12 scale-125">
+                  <img src={logo} alt="" className="w-full h-full object-contain grayscale" />
                 </div>
-              ) : !hasSearched ? (
-                <div className="text-center py-12 text-primary-foreground/50">
-                  <Search className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p>Selecciona un mes y año para ver el resultado</p>
-                </div>
-              ) : !searchResult ? (
-                <div className="text-center py-12 bg-white/5 rounded-xl border border-white/10 w-full max-w-2xl">
-                  <AlertCircle className="h-16 w-16 mx-auto mb-4 text-yellow-400 opacity-80" />
-                  <h4 className="text-xl font-bold mb-2">Sorteo no realizado</h4>
-                  <p className="text-primary-foreground/70">
-                    El sorteo seleccionado aún no se ha llevado a cabo o no hay resultados disponibles.
-                  </p>
-                </div>
-              ) : (
-                <div className="relative w-full max-w-[300px] mx-auto">
-                  <div className="absolute inset-0 bg-gradient-to-b from-yellow-400/10 to-transparent rounded-2xl blur-xl"></div>
-                  <Card className="relative bg-white text-slate-900 p-4 shadow-2xl border-none overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                      <Trophy className="h-32 w-32" />
-                    </div>
-                    
-                    <div className="relative z-10">
-                      <div className="flex flex-col items-center text-center mb-8 gap-4">
-                        <div>
-                          <div className="flex items-center justify-center gap-2 mb-1">
-                            <Badge className="bg-yellow-400 text-yellow-900 hover:bg-yellow-500">
-                              Sorteo Mensual
-                            </Badge>
-                            <span className="text-sm text-slate-500 font-medium uppercase tracking-wider">
-                              Último Domingo
-                            </span>
-                          </div>
-                          <h4 className="text-2xl font-black text-primary capitalize">{searchResult.dateFormatted}</h4>
-                        </div>
-                        <div className="w-full bg-slate-50 p-3 rounded-lg border border-slate-100">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Serial Ganador</p>
-                          <p className="font-mono text-2xl font-bold text-slate-900">{searchResult.ticketSerial}</p>
-                        </div>
-                      </div>
+                
+                {/* Floating particles effect (simulated with divs) */}
+                <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-yellow-400/40 rounded-full animate-pulse"></div>
+                <div className="absolute bottom-1/3 right-1/4 w-3 h-3 bg-white/20 rounded-full animate-pulse delay-700"></div>
+                <div className="absolute top-1/3 right-1/3 w-1.5 h-1.5 bg-yellow-200/30 rounded-full animate-pulse delay-300"></div>
+              </div>
 
-                      <div className="grid grid-cols-2 gap-3 mb-8">
-                        {searchResult.figures.map((num: number) => {
-                          const figure = LOTTERY_FIGURES.find(f => f.number === num)
-                          return (
-                            <div key={num} className="aspect-square bg-slate-50 rounded-lg border border-slate-200 flex flex-col items-center justify-center p-2 shadow-sm">
-                              <img src={figure?.image} alt={figure?.name} className="w-full h-full object-contain mb-1" />
-                              <span className="text-[10px] font-bold text-slate-500 uppercase">{figure?.name}</span>
+              <div className="relative z-10 w-full flex justify-center">
+                {isLoading ? (
+                  <div className="text-center py-12 text-primary-foreground/50">
+                    <Loader2 className="h-16 w-16 mx-auto mb-4 animate-spin" />
+                    <p>Buscando resultados...</p>
+                  </div>
+                ) : !hasSearched ? (
+                  <div className="text-center py-12 text-primary-foreground/50 max-w-xs">
+                    <Search className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-2">Historial de Sorteos</p>
+                    <p className="text-sm opacity-80">Selecciona un mes y año para consultar el cartón ganador</p>
+                  </div>
+                ) : !searchResult ? (
+                  <div className="text-center py-12 bg-black/20 backdrop-blur-md rounded-xl border border-white/10 w-full max-w-md p-8">
+                    <AlertCircle className="h-16 w-16 mx-auto mb-4 text-yellow-400 opacity-80" />
+                    <h4 className="text-xl font-bold mb-2">Sorteo no realizado</h4>
+                    <p className="text-primary-foreground/70">
+                      El sorteo seleccionado aún no se ha llevado a cabo o no hay resultados disponibles.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="relative w-full max-w-[260px] mx-auto transform hover:scale-105 transition-transform duration-500">
+                    <div className="absolute inset-0 bg-gradient-to-b from-yellow-400/20 to-transparent rounded-2xl blur-2xl"></div>
+                    <Card className="relative bg-white text-slate-900 p-3 shadow-2xl border-none overflow-hidden">
+                      <div className="absolute top-0 right-0 p-3 opacity-10">
+                        <Trophy className="h-24 w-24" />
+                      </div>
+                      
+                      <div className="relative z-10">
+                        <div className="flex flex-col items-center text-center mb-6 gap-3">
+                          <div>
+                            <div className="flex items-center justify-center gap-2 mb-1">
+                              <Badge className="bg-yellow-400 text-yellow-900 hover:bg-yellow-500 text-[10px] px-2 h-5">
+                                Sorteo Mensual
+                              </Badge>
+                              <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
+                                Último Domingo
+                              </span>
                             </div>
-                          )
-                        })}
-                      </div>
+                            <h4 className="text-xl font-black text-primary capitalize">{searchResult.dateFormatted}</h4>
+                          </div>
+                          <div className="w-full bg-slate-50 p-2 rounded-lg border border-slate-100">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Serial Ganador</p>
+                            <p className="font-mono text-xl font-bold text-slate-900">{searchResult.ticketSerial}</p>
+                          </div>
+                        </div>
 
-                      <div className="flex flex-col items-center justify-center pt-6 border-t border-slate-100 gap-4 text-center">
-                        <div className="flex items-center justify-center gap-8 w-full">
-                          <div>
-                            <p className="text-xs text-slate-500 font-medium uppercase">Premio Mayor</p>
-                            <p className="text-2xl font-bold text-green-600">{searchResult.prize}</p>
-                          </div>
-                          <div className="h-8 w-px bg-slate-200"></div>
-                          <div>
-                            <p className="text-xs text-slate-500 font-medium uppercase">Estado</p>
-                            <Badge variant={searchResult.status === 'Ganador' ? 'default' : 'secondary'} className={cn(
-                              searchResult.status === 'Ganador' ? "bg-green-500 hover:bg-green-600" : "bg-slate-500"
-                            )}>
-                              {searchResult.status}
-                            </Badge>
-                          </div>
+                        <div className="grid grid-cols-2 gap-2 mb-6">
+                          {searchResult.figures.map((num: number) => {
+                            const figure = LOTTERY_FIGURES.find(f => f.number === num)
+                            return (
+                              <div key={num} className="aspect-square bg-slate-50 rounded-lg border border-slate-200 flex flex-col items-center justify-center p-2 shadow-sm">
+                                <img src={figure?.image} alt={figure?.name} className="w-full h-full object-contain mb-1" />
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">{figure?.name}</span>
+                              </div>
+                            )
+                          })}
                         </div>
-                        
-                        <div className="flex items-center gap-2 text-slate-400">
-                          <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-                          <span className="text-xs font-bold uppercase">Resultado Verificado</span>
+
+                        <div className="flex flex-col items-center justify-center pt-4 border-t border-slate-100 gap-3 text-center">
+                          <div className="flex items-center justify-center gap-4 w-full">
+                            <div>
+                              <p className="text-[10px] text-slate-500 font-medium uppercase">Premio Mayor</p>
+                              <p className="text-lg font-bold text-green-600">{searchResult.prize}</p>
+                            </div>
+                            <div className="h-6 w-px bg-slate-200"></div>
+                            <div>
+                              <p className="text-[10px] text-slate-500 font-medium uppercase">Estado</p>
+                              <Badge variant={searchResult.status === 'Ganador' ? 'default' : 'secondary'} className={cn(
+                                "h-5 text-[10px]",
+                                searchResult.status === 'Ganador' ? "bg-green-500 hover:bg-green-600" : "bg-slate-500"
+                              )}>
+                                {searchResult.status}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-1.5 text-slate-400">
+                            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                            <span className="text-[10px] font-bold uppercase">Resultado Verificado</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Card>
-                </div>
-              )}
+                    </Card>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
