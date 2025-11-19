@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { NavigationHeader } from './components/NavigationHeader'
 import { HeroSection } from './components/HeroSection'
 import { ResultsSection } from './components/ResultsSection'
-import { OnlineGameSection } from './components/OnlineGameSection'
+import { SpecialGame } from './components/SpecialGame'
 import { Footer } from './components/Footer'
 import { Toaster } from './components/ui/sonner'
 
@@ -25,7 +25,7 @@ function App() {
       <main>
         <HeroSection />
         <ResultsSection />
-        <OnlineGameSection />
+        <SpecialGame />
       </main>
       <Footer />
       <Toaster />

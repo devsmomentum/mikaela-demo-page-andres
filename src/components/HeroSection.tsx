@@ -30,7 +30,7 @@ export function HeroSection() {
             <div className="bg-card rounded-lg p-6 shadow-lg flex-1 max-w-xs">
               <Trophy className="h-8 w-8 text-accent mx-auto mb-2" />
               <p className="text-2xl md:text-3xl font-bold text-primary mb-1">30x</p>
-              <p className="text-sm text-muted-foreground">Premio Ordinario</p>
+              <p className="text-foreground/80 text-lg max-w-2xl mx-auto">Premio Ordinario</p>
             </div>
             
             <div className="bg-destructive rounded-lg p-6 shadow-lg flex-1 max-w-xs relative overflow-hidden">

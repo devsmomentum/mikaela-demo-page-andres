@@ -57,7 +57,7 @@ export function NavigationHeader() {
               Reglamento
             </Link>
             <button
-              onClick={() => handleNavigate('juego-online')}
+              onClick={() => handleNavigate('sorteo-especial')}
               className="text-sm font-medium hover:opacity-80 transition-opacity"
             >
               Pollo Lleno Millonario
@@ -94,10 +94,10 @@ export function NavigationHeader() {
               Reglamento
             </Link>
             <button
-              onClick={() => handleNavigate('juego-online')}
+              onClick={() => handleNavigate('sorteo-especial')}
               className="text-left py-3 px-4 rounded-md hover:bg-primary-foreground/10 transition-colors font-medium"
             >
-              Juego Online
+              Pollo Lleno Millonario
             </button>
           </nav>
         </div>
