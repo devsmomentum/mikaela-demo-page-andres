@@ -47,6 +47,11 @@ export function NavigationHeader() {
             >
               Inicio
             </button>
+
+            <Link to="/tablero-en-vivo" className="text-sm font-medium hover:opacity-80 transition-opacity">
+              Tablero en Vivo
+            </Link>
+
             <button
               onClick={() => handleNavigate('resultados')}
               className="text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer"
@@ -84,6 +89,9 @@ export function NavigationHeader() {
             >
               Inicio
             </button>
+            <Link to="/tablero-en-vivo" className="text-left py-3 px-4 rounded-md hover:bg-primary-foreground/10 transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+              Tablero en Vivo
+            </Link>
             <button
               onClick={() => handleNavigate('resultados')}
               className="text-left py-3 px-4 rounded-md hover:bg-primary-foreground/10 transition-colors font-medium cursor-pointer"
