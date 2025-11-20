@@ -113,6 +113,71 @@ interface SpecialGameResult {
 
 ---
 
+## 🌍 Configuración de Entorno
+
+Para conectar la aplicación con tu backend real, se recomienda utilizar variables de entorno.
+
+1.  Crea un archivo `.env` en la raíz del proyecto.
+2.  Define la URL base de tu API:
+
+```env
+VITE_API_URL=https://api.tudominio.com
+```
+
+3.  Actualiza `src/services/lottery-api.ts` para usar esta variable:
+
+```typescript
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+```
+
+---
+
+## 🗄️ Integración con Base de Datos (Sugerencia)
+
+Para persistir los datos de los sorteos, se sugiere el siguiente esquema de base de datos (ejemplo en SQL), diseñado para cumplir con las interfaces de TypeScript definidas en el proyecto.
+
+### Tabla: `daily_draws` (Sorteos Diarios)
+Almacena la información general del día.
+
+| Columna | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `id` | UUID/INT | Identificador único |
+| `date` | DATE | Fecha del sorteo (YYYY-MM-DD) |
+| `created_at` | TIMESTAMP | Fecha de creación |
+
+### Tabla: `ordinary_results` (Resultados Ordinarios)
+Relacionado con `daily_draws`. Almacena los resultados de cada hora.
+
+| Columna | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `id` | UUID/INT | Identificador único |
+| `draw_id` | FK | Referencia a `daily_draws` |
+| `time` | VARCHAR | Hora del sorteo (Ej: "10:00 AM") |
+| `figure_number` | INT | Número ganador (1-40) |
+
+### Tabla: `extraordinary_results` (Resultados Extraordinarios)
+Relacionado con `daily_draws`. Almacena los 6 números ganadores.
+
+| Columna | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `id` | UUID/INT | Identificador único |
+| `draw_id` | FK | Referencia a `daily_draws` |
+| `figures` | JSON/ARRAY | Array de números: `[5, 12, 33, ...]` |
+
+### Tabla: `special_games` (Juego Especial Mensual)
+Almacena los resultados del "Pollo Lleno".
+
+| Columna | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `id` | UUID/INT | Identificador único |
+| `draw_date` | DATE | Fecha del sorteo |
+| `figures` | JSON/ARRAY | Array de 6 números ganadores |
+| `ticket_serial` | VARCHAR | Serial ganador o NULL si vacante |
+| `prize_amount` | DECIMAL | Monto del premio |
+| `status` | ENUM | 'Ganador' o 'Vacante' |
+
+---
+
 ## 🛠️ Instalación y Ejecución
 
 Para ejecutar este proyecto localmente:
