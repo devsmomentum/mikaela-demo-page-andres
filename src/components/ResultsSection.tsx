@@ -222,40 +222,52 @@ export function ResultsSection() {
                   <p className="text-sm text-muted-foreground mb-6">
                     Gana con 5 o 6 aciertos en cualquier orden
                   </p>
-                  <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                    {currentResults.extraordinary.figures.map((figNum, idx) => {
-                      const figure = getFigureByNumber(figNum)
-                      const isMikaela = figNum === 21
-                      
-                      return (
-                        <Card
-                          key={idx}
-                          className={`p-6 text-center transition-all hover:shadow-lg ${
-                            isMikaela ? 'border-2 border-destructive bg-destructive/5' : 'bg-accent/10'
-                          }`}
-                        >
-                          <div className="mb-3 h-20 w-20 mx-auto relative">
-                            <img 
-                              src={figure?.image} 
-                              alt={figure?.name}
-                              className="object-contain w-full h-full"
-                            />
-                          </div>
-                          <p className="text-3xl font-bold text-accent mb-1">
-                            #{figNum}
-                          </p>
-                          <p className="text-sm font-medium text-foreground">
-                            {figure?.name}
-                          </p>
-                          {isMikaela && (
-                            <Badge className="mt-2 bg-destructive text-destructive-foreground">
-                              Especial
-                            </Badge>
-                          )}
-                        </Card>
-                      )
-                    })}
-                  </div>
+                  {currentResults.extraordinary.figures.length === 0 && selectedDate === new Date().toISOString().split('T')[0] ? (
+                    <div className="flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed border-accent/30 rounded-lg bg-accent/5">
+                      <Clock className="h-12 w-12 text-accent mb-4 animate-pulse" />
+                      <h4 className="text-xl font-bold text-accent mb-2">Sorteo pendiente</h4>
+                      <p className="text-foreground/80 max-w-md">
+                        Los resultados del sorteo de las 8:00 PM de hoy aún no han sido publicados.
+                        <br />
+                        Por favor, vuelve a consultar después de la hora del sorteo.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                      {currentResults.extraordinary.figures.map((figNum, idx) => {
+                        const figure = getFigureByNumber(figNum)
+                        const isMikaela = figNum === 21
+                        
+                        return (
+                          <Card
+                            key={idx}
+                            className={`p-6 text-center transition-all hover:shadow-lg ${
+                              isMikaela ? 'border-2 border-destructive bg-destructive/5' : 'bg-accent/10'
+                            }`}
+                          >
+                            <div className="mb-3 h-20 w-20 mx-auto relative">
+                              <img 
+                                src={figure?.image} 
+                                alt={figure?.name}
+                                className="object-contain w-full h-full"
+                              />
+                            </div>
+                            <p className="text-3xl font-bold text-accent mb-1">
+                              #{figNum}
+                            </p>
+                            <p className="text-sm font-medium text-foreground">
+                              {figure?.name}
+                            </p>
+                            {isMikaela && (
+                              <Badge className="mt-2 bg-destructive text-destructive-foreground">
+                                Especial
+                              </Badge>
+                            )}
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
