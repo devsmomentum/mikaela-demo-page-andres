@@ -17,8 +17,7 @@ import { cn } from '@/lib/utils'
 // Mock data for live metrics
 const LIVE_METRICS = {
   pote: 15450.00,
-  primerLugar: 4494.00,
-  segundoLugar: 642.00,
+  ganadores: 4494.00,
   tickets: 137
 }
 
@@ -36,7 +35,7 @@ const HISTORY_DATA = DAILY_DRAWS.flatMap((draw, drawIndex) => {
   return Array.from({ length: 8 }).map((_, i) => {
     const ticketId = 1000 + (drawIndex * 100) + i
     // Generate random ticket figures
-    const ticket = Array.from({ length: 6 }, () => Math.floor(Math.random() * 40) + 1)
+    let ticket = Array.from({ length: 6 }, () => Math.floor(Math.random() * 40) + 1)
 
     
     
@@ -48,30 +47,26 @@ const HISTORY_DATA = DAILY_DRAWS.flatMap((draw, drawIndex) => {
     if (draw.winningFigures.length > 0) {
         // Force some winners for demo
         if (i === 0) { 
-            rank = '1er Lugar'
+            rank = 'GANADOR'
             matchCount = 6
-            matchedFigures = [...draw.winningFigures]
+            matchedFigures = draw.winningFigures.slice(0, 6)
             // Override ticket to match winning figures
-            ticket.splice(0, 6, ...draw.winningFigures)
+            ticket = draw.winningFigures.slice(0, 6)
         } else if (i === 1 || i === 2) { 
-            rank = '2do Lugar'
+            rank = 'GANADOR'
             matchCount = 5
             matchedFigures = draw.winningFigures.slice(0, 5)
              // Override ticket to match 5 winning figures + 1 random
-            ticket.splice(0, 6, ...draw.winningFigures.slice(0, 5), (draw.winningFigures[5] % 40) + 1)
+            ticket = [...draw.winningFigures.slice(0, 5), (draw.winningFigures[5] % 40) + 1]
         } else {
             matchCount = Math.floor(Math.random() * 4)
             matchedFigures = ticket.slice(0, matchCount) // Fake matches
         }
 
         // Calculate prize
-        if (rank === '1er Lugar') {
-            const prizePool = draw.totalPot * 0.7
-            const perWinner = prizePool / (draw.winnersCount.firstPlace || 1)
-            premio = `${perWinner.toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs`
-        } else if (rank === '2do Lugar') {
-            const prizePool = draw.totalPot * 0.3
-            const perWinner = prizePool / (draw.winnersCount.secondPlace || 1)
+        if (rank === 'GANADOR') {
+            const totalWinners = 3 // Fixed number of winners for demo
+            const perWinner = draw.totalPot / totalWinners
             premio = `${perWinner.toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs`
         }
     } else {
@@ -103,9 +98,6 @@ export function LiveDashboardSection() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 8
 
-    let primerLugar = metrics.pote * 0.7
-    let segundoLugar = metrics.pote * 0.3
-
   // Filter logic
   const filteredData = HISTORY_DATA.filter(item => {
     const itemDate = parseISO(item.fecha)
@@ -113,7 +105,7 @@ export function LiveDashboardSection() {
     const matchesSearch = item.ticketNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           item.id.toString().includes(searchTerm)
     const matchesType = filterType === 'todos' ? true : 
-                        filterType === 'ganadores' ? (item.rank === '1er Lugar' || item.rank === '2do Lugar') : true
+                        filterType === 'ganadores' ? (item.rank === 'GANADOR') : true
     
     return matchesDate && matchesSearch && matchesType
   })
@@ -191,7 +183,7 @@ export function LiveDashboardSection() {
           </div>
 
           {/* Metrics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="border-none shadow-md hover:shadow-lg transition-shadow bg-card">
               <CardContent className="p-6 flex flex-col items-center text-center">
                 <span className="text-sm text-slate-600 font-bold mb-2">Monto Recaudado (Pote)</span>
@@ -201,26 +193,6 @@ export function LiveDashboardSection() {
                 <Badge variant="outline" className="mt-2 text-xs bg-green-50 text-green-700 border-green-200">
                   +2.5% vs ayer
                 </Badge>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-md hover:shadow-lg transition-shadow bg-card">
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <span className="text-sm text-slate-600 font-bold mb-2">A Repartir: 1er Lugar</span>
-                <div className="text-2xl font-bold text-accent">
-                  {primerLugar.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
-                </div>
-                <span className="text-xs font-bold text-primary mt-1">70% del pote</span>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-md hover:shadow-lg transition-shadow bg-card">
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <span className="text-sm text-slate-600 font-bold mb-2">A Repartir: 2do Lugar</span>
-                <div className="text-2xl font-bold text-secondary-foreground">
-                  {segundoLugar.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
-                </div>
-                <span className="text-xs font-bold text-primary mt-1">30% del pote</span>
               </CardContent>
             </Card>
 
@@ -364,8 +336,7 @@ export function LiveDashboardSection() {
                 <div className="flex flex-col items-center">
                   <span className="text-xs font-bold text-primary-foreground/80 uppercase tracking-wider">Pote Total</span>
                   <div className="text-2xl font-bold text-[var(--mikaela-gold)] flex items-center gap-1">
-                    <DollarSign className="w-5 h-5" />
-                    {(isSameDay(parseISO(selectedDraw.date), new Date()) ? metrics.pote : selectedDraw.totalPot).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {(isSameDay(parseISO(selectedDraw.date), new Date()) ? metrics.pote : selectedDraw.totalPot).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
                   </div>
                 </div>
 
@@ -439,14 +410,9 @@ export function LiveDashboardSection() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {row.rank === '1er Lugar' && (
+                      {row.rank === 'GANADOR' && (
                         <Badge className="bg-[var(--mikaela-gold)] text-[#422006] hover:bg-[var(--mikaela-gold)]/80 border-none font-bold">
-                          🏆 1er Lugar
-                        </Badge>
-                      )}
-                      {row.rank === '2do Lugar' && (
-                        <Badge className="bg-[#9ca3af] text-white hover:bg-[#6b7280] border-none font-bold">
-                          🥈 2do Lugar
+                          🏆 GANADOR
                         </Badge>
                       )}
                       {row.rank === 'No Ganador' && (
