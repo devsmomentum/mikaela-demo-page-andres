@@ -1,4 +1,4 @@
-import { DailyResults, MOCK_RESULTS, LOTTERY_FIGURES } from '@/lib/lottery-data';
+import { DailyResults, MOCK_RESULTS, LOTTERY_FIGURES, OrdinaryResult } from '@/lib/lottery-data';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/lib/supabase';
@@ -49,50 +49,123 @@ export const lotteryApi = {
    * Endpoint sugerido: GET /api/results?date=YYYY-MM-DD
    */
   getResults: async (params: GetResultsPayload): Promise<DailyResults | undefined> => {
-    // SUPABASE IMPLEMENTATION:
-    /*
-    // 1. Consultar sorteos para la fecha
-    const { data: draws, error } = await supabase
+    try {
+      console.log('[LotteryAPI] Solicitando resultados para:', params.date);
+
+      // Estrategia robusta para fechas:
+      // Usamos gte (>=) fecha_actual y lt (<) fecha_siguiente
+      // Esto funciona tanto para columnas tipo DATE como TIMESTAMP/TIMESTAMPTZ
+      
+      const today = params.date; // YYYY-MM-DD
+      
+      // Calcular el día siguiente
+      const dateObj = new Date(today);
+      dateObj.setDate(dateObj.getDate() + 1);
+      const tomorrow = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+
+      console.log('[LotteryAPI] Rango de consulta (inclusive-exclusive):', today, 'a', tomorrow);
+
+      // CORRECCIÓN: La columna de fecha/hora se llama 'draw_time', no 'date'.
+      const { data: draws, error } = await supabase
         .from('draws')
-        .select(`
-            *,
-            draw_results (
-                figure_number,
-                position
-            )
-        `)
-        .eq('date', params.date);
+        .select('*')
+        .gte('draw_time', today)
+        .lt('draw_time', tomorrow);
 
-    if (error) throw error;
-    if (!draws || draws.length === 0) return undefined;
+      if (error) {
+        console.error('[LotteryAPI] Error fetching draws from Supabase:', error);
+        return undefined;
+      }
 
-    // 2. Transformar datos de Supabase al formato que espera tu App (DailyResults)
-    
-    const ordinaryDraws = draws.filter(d => d.type === 'ordinario');
-    const extraordinaryDraw = draws.find(d => d.type === 'extraordinario');
+      console.log('[LotteryAPI] Datos crudos recibidos de Supabase:', draws);
 
-    const result: DailyResults = {
+      if (!draws || draws.length === 0) {
+        console.warn('[LotteryAPI] No se encontraron sorteos para esta fecha.');
+        return undefined;
+      }
+
+      // 2. Transformar datos de Supabase al formato que espera tu App (DailyResults)
+      
+      // Filtramos los sorteos. Si existe la columna 'type', la usamos. 
+      // Si no, asumimos que si tiene 'draw_time' es ordinario.
+      const ordinaryDraws = draws.filter((d: any) => 
+        d.type === 'ordinario' || (d.draw_time && d.type !== 'extraordinario')
+      );
+      
+      console.log('[LotteryAPI] Sorteos ordinarios filtrados:', ordinaryDraws);
+
+      const ordinary: OrdinaryResult[] = ordinaryDraws
+        .map((d: any) => {
+          // Formatear hora draw_time.
+          // Si es un TIMESTAMP (ej: 2025-11-24 17:00:00+00), lo parseamos correctamente.
+          let timeFormatted = d.draw_time;
+          
+          if (d.draw_time) {
+            try {
+              // Intentamos parsear como fecha completa
+              const dateObj = new Date(d.draw_time);
+              
+              if (!isNaN(dateObj.getTime())) {
+                // Es una fecha válida (TIMESTAMP)
+                timeFormatted = format(dateObj, 'hh:mm a');
+              } else {
+                // Fallback: Intentar parsear como solo hora (HH:mm:ss)
+                const parts = d.draw_time.split(':');
+                if (parts.length >= 2) {
+                  const date = new Date();
+                  // Cuidado: si parts[0] viene sucio, esto puede fallar, pero es un fallback.
+                  const hours = parseInt(parts[0]);
+                  const minutes = parseInt(parts[1]);
+                  if (!isNaN(hours) && !isNaN(minutes)) {
+                    date.setHours(hours);
+                    date.setMinutes(minutes);
+                    timeFormatted = format(date, 'hh:mm a');
+                  }
+                }
+              }
+            } catch (e) {
+              console.error('Error formatting time:', d.draw_time);
+            }
+          }
+
+          return {
+            time: timeFormatted,
+            figureNumber: Number(d.winning_animal_number), // Asegurar que sea número
+            // Helper para ordenar
+            _rawTime: d.draw_time
+          };
+        })
+        // Ordenar por hora
+        .sort((a: any, b: any) => {
+            if (!a._rawTime) return 1;
+            if (!b._rawTime) return -1;
+            return a._rawTime.localeCompare(b._rawTime);
+        })
+        // Limpiar propiedades auxiliares
+        .map((d: any) => ({
+            time: d.time,
+            figureNumber: d.figureNumber
+        }));
+
+      console.log('[LotteryAPI] Resultados ordinarios procesados:', ordinary);
+
+      // Para el extraordinario
+      const extraordinaryDraw = draws.find((d: any) => d.type === 'extraordinario');
+      
+      const result: DailyResults = {
         date: params.date,
-        ordinary: ordinaryDraws.map(d => ({
-            time: d.time.substring(0, 5) + (parseInt(d.time) >= 12 ? ' PM' : ' AM'), // Formatear hora
-            figureNumber: d.draw_results[0]?.figure_number || 0
-        })),
+        ordinary: ordinary,
         extraordinary: {
-            figures: extraordinaryDraw 
-                ? extraordinaryDraw.draw_results.map(r => r.figure_number) 
-                : []
+          figures: [] // TODO: Implementar lógica para extraordinario si es necesario
         }
-    };
+      };
 
-    return result;
-    */
+      return result;
 
-    // SIMULACIÓN DE LLAMADA A API
-    // Simulamos un retardo de red
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Retornamos los datos mockeados existentes
-    return MOCK_RESULTS.find(r => r.date === params.date);
+    } catch (error) {
+      console.error('[LotteryAPI] Unexpected error in getResults:', error);
+      return undefined;
+    }
   },
 
   /**
