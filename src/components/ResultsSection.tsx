@@ -41,12 +41,14 @@ export function ResultsSection() {
 
   useEffect(() => {
     const fetchResults = async () => {
+      console.log("🔄 [Frontend] Iniciando búsqueda de resultados para:", selectedDate);
       setIsLoading(true)
       try {
         const data = await lotteryApi.getResults({ date: selectedDate })
+        console.log("✅ [Frontend] Resultados recibidos:", data);
         setCurrentResults(data)
       } catch (error) {
-        console.error("Error fetching results:", error)
+        console.error("❌ [Frontend] Error al obtener resultados:", error)
       } finally {
         setIsLoading(false)
       }

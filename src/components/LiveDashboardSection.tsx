@@ -186,7 +186,7 @@ export function LiveDashboardSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="border-none shadow-md hover:shadow-lg transition-shadow bg-card">
               <CardContent className="p-6 flex flex-col items-center text-center">
-                <span className="text-sm text-slate-600 font-bold mb-2">Monto Recaudado (Pote)</span>
+                <span className="text-sm text-slate-600 font-bold mb-2">Monto Recaudado</span>
                 <div className="text-3xl font-bold text-primary flex items-center gap-1">
                   {metrics.pote.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
                 </div>
