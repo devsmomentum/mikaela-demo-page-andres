@@ -133,10 +133,6 @@ export function HeroSection() {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium mb-6 shadow-lg">
-            <Sparkles className="h-4 w-4" />
-            <span>Lotería Oficial Venezolana</span>
-          </div>
 
           <div className="mb-8 flex justify-center">
             <img

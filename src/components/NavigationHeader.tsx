@@ -1,7 +1,7 @@
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import logo from '@/assets/images/BLANCO_Logo_de_Mikaela_La_Pollita_Millonaria-01.png'
+import logo from '@/assets/images/Logo_tipografico_Mikaela_La_Pollita_Millonaria-01.png'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 export function NavigationHeader() {
@@ -27,7 +27,7 @@ export function NavigationHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-md">
+    <header className="fixed top-0 w-full z-50 bg-primary text-primary-foreground shadow-lg rounded-b-3xl border-b-4 border-yellow-400 shadow-yellow-500/30">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           <div className="flex items-center gap-3">
