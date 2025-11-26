@@ -27,7 +27,15 @@ export function NavigationHeader() {
   }
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-primary text-primary-foreground shadow-lg rounded-b-3xl border-b-4 border-yellow-400 shadow-yellow-500/30">
+    <header className="fixed top-0 w-full z-50 bg-primary text-primary-foreground 
+             shadow-lg rounded-b-3xl border-b-4 border-yellow-400 shadow-yellow-500/30
+             
+             // ✨ Clases añadidas para el efecto:
+             transition-all duration-300 ease-in-out
+             hover:translate-y-[-4px] 
+             hover:shadow-yellow-500/80
+             cursor-pointer
+            ">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           <div className="flex items-center gap-3">

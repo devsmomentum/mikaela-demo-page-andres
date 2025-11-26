@@ -9,7 +9,7 @@ const GAME_MODES = [
     id: 'pollita',
     title: 'La Pollita',
     subtitle: 'Sorteo Ordinario',
-    description: '10 sorteos diarios. Gana 30x tu apuesta, o 40x si sale Mikaela (#21).',
+    description: <> <b>10 sorteos diarios</b>. Gana 30x tu apuesta, o 40x si sale Mikaela (#21). </>,
     icon: Clock,
     color: 'text-primary',
     bgColor: 'bg-primary/10',
@@ -19,7 +19,7 @@ const GAME_MODES = [
     id: 'pollo-lleno',
     title: 'Pollo Lleno',
     subtitle: 'Sorteo Extra-ordinario',
-    description: 'El Acumulado. Acierta 6 figuras. Sorteo todos los días a las 8:00 PM.',
+    description: <>El Acumulado. Acierta 6 figuras. <b>Sorteo todos los días a las 8:00 PM.</b></>,
     icon: Trophy,
     color: 'text-accent',
     bgColor: 'bg-accent/10',
@@ -29,7 +29,7 @@ const GAME_MODES = [
     id: 'millonario',
     title: 'Pollo Millonario',
     subtitle: 'Sorteo Especial',
-    description: 'Tickets pre-impresos con combinaciones únicas. ¡Gana según tus aciertos!',
+    description: <>Tickets pre-impresos con combinaciones únicas. <b>¡Gana según tus aciertos!</b></>,
     icon: Ticket,
     color: 'text-secondary-foreground',
     bgColor: 'bg-secondary/20',
@@ -142,8 +142,7 @@ export function HeroSection() {
             />
           </div>
 
-          <p className="text-lg md:text-xl text-foreground/80 mb-12 max-w-2xl mx-auto font-medium">
-            Tu oportunidad de ganar cada día con <span className="font-bold text-primary">3 modalidades de juego</span> y premios extraordinarios.
+          <p className="text-lg md:text-xl text-foreground/80 mb-12 max-w-2xl mx-auto font-medium" style={{ color: '#fff' }}> Tu oportunidad de ganar cada día con 3 modalidades de juego y premios extraordinarios.
           </p>
 
           {/* Carrusel de Modalidades de Juego */}
