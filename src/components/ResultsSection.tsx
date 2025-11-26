@@ -98,7 +98,7 @@ export function ResultsSection() {
                     {selectedDate ? format(parseISO(selectedDate), "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={selectedDate ? parseISO(selectedDate) : undefined}
@@ -110,10 +110,6 @@ export function ResultsSection() {
                     }}
                     disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                     initialFocus
-                    classNames={{
-                        head_row: "flex w-full justify-center",
-                        row: "flex w-full mt-2 justify-center"
-                    }}
                   />
                 </PopoverContent>
               </Popover>
