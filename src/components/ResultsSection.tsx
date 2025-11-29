@@ -164,7 +164,7 @@ export function ResultsSection() {
               {sorteoType === 'ordinario' ? (
                 <div className="min-w-full">
                   <h3 className="text-xl font-semibold mb-4 text-primary">
-                    Sorteo Ordinario - {format(new Date(selectedDate + 'T12:00:00'), "dd MM yy", { locale: es })}
+                    Sorteo Ordinario - {format(new Date(selectedDate + 'T12:00:00'), "dd/MM/yy", { locale: es })}
                     {selectedShift !== 'all' && ` - ${SHIFTS[selectedShift].label.split('(')[0].trim()}`}
                   </h3>
                   {filteredOrdinaryResults.length > 0 ? (
@@ -176,30 +176,34 @@ export function ResultsSection() {
                         return (
                           <Card
                             key={idx}
-                            className={`p-4 text-center transition-all hover:shadow-lg ${
+                            /* SE AGREGO: card-hover-effect overflow-visible */
+                            className={`p-4 text-center card-hover-effect overflow-visible ${
                               isMikaela ? 'border-2 border-destructive bg-destructive/5' : ''
                             }`}
                           >
+                            
+                            <p className="text-2xl font-bold text-primary mb-1">
+                              {result.figureNumber}
+                            </p>
+                            <div className="image-wrapper mb-2 h-16 w-16 mx-auto relative">
+                              <img 
+                                src={figure?.image} 
+                                alt={figure?.name}
+                                loading="lazy"
+                                className="zoom-image object-contain w-full h-full"
+                              />
+                            </div>
+                            
+                            <p className="text-sm font-medium text-foreground" style={{fontSize:'20px'}}>
+                              {figure?.name}
+                            </p>
+
                             <div className="flex justify-center mb-3">
                               <Badge variant="secondary" className="font-medium">
                                 <Clock className="h-3 w-3 mr-1" />
                                 {result.time}
                               </Badge>
                             </div>
-                            <div className="mb-2 h-16 w-16 mx-auto relative">
-                              <img 
-                                src={figure?.image} 
-                                alt={figure?.name}
-                                loading="lazy"
-                                className="object-contain w-full h-full"
-                              />
-                            </div>
-                            <p className="text-2xl font-bold text-primary mb-1">
-                              #{result.figureNumber}
-                            </p>
-                            <p className="text-sm font-medium text-foreground">
-                              {figure?.name}
-                            </p>
                             {isMikaela && (
                               <Badge className="mt-2 bg-destructive text-destructive-foreground animate-pulse-glow">
                                 ¡Paga 40x!
@@ -242,7 +246,8 @@ export function ResultsSection() {
                         return (
                           <Card
                             key={idx}
-                            className={`p-6 text-center transition-all hover:shadow-lg ${
+                            /* SE AGREGO: card-hover-effect overflow-visible */
+                            className={`p-6 text-center card-hover-effect overflow-visible ${
                               isMikaela ? 'border-2 border-destructive bg-destructive/5' : 'bg-accent/10'
                             }`}
                           >

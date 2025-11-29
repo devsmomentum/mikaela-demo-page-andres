@@ -7,12 +7,90 @@
   }
   
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Montserrat', sans-serif;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Montserrat', sans-serif;
   }
+}
+
+/* --- Contenedor 'card-container' (Opcional, para simular la tarjeta) --- */
+.card-container {
+    width: 300px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    /* Importante para el ejemplo: posicionar la tarjeta */
+    margin: 50px auto; 
+}
+
+/* --- El DIV que contiene la imagen --- */
+.image-wrapper {
+    /* Clases existentes del div: mb-2 h-16 w-16 mx-auto relative */
+    /* Asegúrate de que las dimensiones (h-16 w-16) sean las que deseas */
+    
+    /* ¡CLAVE!: Permite que la imagen (el hijo) se salga de los límites del div */
+    overflow: visible; 
+    
+    /* Configuración para centrar la imagen dentro del wrapper */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Animación para las tarjetas de resultados */
+.card-hover-effect {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: visible !important; /* Permite que la imagen salga */
+  position: relative;
+  z-index: 1;
+}
+
+.card-hover-effect:hover {
+  transform: scale(1.05); /* Agranda la tarjeta */
+  /* El gradiente exacto que pediste */
+  background-image: linear-gradient(180deg, #E4332F 0%, #E95731 35%, #F79133 70%, #FDEB37 100%) !important;
+  z-index: 50; /* Trae la tarjeta al frente */
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  border-color: transparent;
+}
+
+/* Efecto en la imagen cuando se hace hover en la tarjeta */
+.card-hover-effect:hover img {
+  transform: scale(1.35) translateY(-20px); /* Agranda y sube la imagen */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+}
+
+/* --- La IMAGEN que se va a hacer zoom --- */
+.zoom-image {
+    /* Asegura que la imagen ocupe el 100% del contenedor 
+      inicial (h-16 w-16 en este caso).
+    */
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Asegura que la imagen no se distorsione */
+    
+    /* CLAVE: Define una transición suave */
+    transition: transform 0.3s ease-in-out; 
+    
+    /* Opcional: mejora la calidad visual de la imagen al escalar */
+    will-change: transform; 
+}
+
+/* --- Estado HOVER (Cuando el cursor pasa por encima) --- */
+.image-wrapper:hover .zoom-image {
+    /* CLAVE: Escala la imagen. Un valor de 1.5 es un 150% de su tamaño original.
+      La imagen se agranda y, gracias a 'overflow: visible' en el padre, 
+      sale de los límites visuales del div 'h-16 w-16'.
+    */
+    transform: scale(1.5);
+}
+
+.socialMedia {
+  @apply flex items-center gap-4;
 }
 
 :root {
