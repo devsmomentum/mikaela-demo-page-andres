@@ -87,12 +87,7 @@ export function SpecialGame() {
   const demoFigures = [21, 15, 6, 27, 8, 12] 
 
   return (
-    <section id="sorteo-especial" className="py-16 md:py-24 
-             bg-gradient-to-br 
-             from-emerald-950 
-             via-black 
-             to-emerald-900 
-             text-white relative overflow-hidden">
+    <section id="sorteo-especial" className="py-16 md:py-24 bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground relative overflow-hidden">
       {/* Background pattern */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIi8+PC9zdmc+')] opacity-30"></div>
       
