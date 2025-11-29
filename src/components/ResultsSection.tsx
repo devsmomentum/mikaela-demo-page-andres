@@ -176,41 +176,47 @@ export function ResultsSection() {
                         
                         return (
                           <Card
-                            key={idx}
-                            /* SE AGREGO: card-hover-effect overflow-visible */
-                            className={`p-4 text-center card-hover-effect overflow-visible ${
+                          key={idx}
+                          /* SE AGREGO: card-hover-effect overflow-visible */
+                          className={`p-4 text-center card-hover-effect overflow-visible ${
                               isMikaela ? 'border-2 border-destructive bg-destructive/5' : ''
-                            }`}
-                          >
-                            
-                            <p className="text-2xl font-bold text-primary mb-1">
-                              {result.figureNumber}
-                            </p>
-                            <div className="image-wrapper mb-2 h-16 w-16 mx-auto relative">
+                          }`}
+                      >
+                          
+                          {/* NUEVO WRAPPER para el número y círculo */}
+                          <div className="figure-number-wrapper mb-3">
+                              <p className="text-2xl font-bold text-primary">
+                                  {result.figureNumber}
+                              </p>
+                          </div>
+                          
+                          {/* Aumenté las dimensiones del contenedor a h-28 w-28 (o más, ajústalo) */}
+                          <div className="image-wrapper mb-2 h-28 w-28 mx-auto relative">
                               <img 
-                                src={figure?.image} 
-                                alt={figure?.name}
-                                loading="lazy"
-                                className="zoom-image object-contain w-full h-full"
+                                  src={figure?.image} 
+                                  alt={figure?.name}
+                                  loading="lazy"
+                                  /* ¡CLAVE!: Removí la clase 'zoom-image' de la imagen para usar una nueva clase */
+                                  className="card-image-content object-contain w-full h-full"
                               />
-                            </div>
-                            
-                            <p className="text-sm font-medium text-foreground" style={{fontSize:'20px'}}>
+                          </div>
+                          
+                          <p className="text-sm font-medium text-foreground" style={{fontSize:'20px'}}>
                               {figure?.name}
-                            </p>
+                          </p>
 
-                            <div className="flex justify-center mb-3">
+                          <div className="flex justify-center mb-3">
                               <Badge variant="secondary" className="font-medium">
-                                <Clock className="h-3 w-3 mr-1" />
-                                {result.time}
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {result.time}
                               </Badge>
-                            </div>
-                            {isMikaela && (
+                          </div>
+                          {isMikaela && (
                               <Badge className="mt-2 bg-destructive text-destructive-foreground animate-pulse-glow">
-                                ¡Paga 40x!
+                                  ¡Paga 40x!
                               </Badge>
-                            )}
-                          </Card>
+                          )}
+                      </Card>
                         )
                       })}
                     </div>
