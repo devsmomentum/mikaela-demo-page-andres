@@ -34,7 +34,7 @@ const GAME_MODES = [
     {
         id: 'pollo-lleno',
         title: 'Pollo Lleno',
-        subtitle: 'Sorteo Extra-ordinario',
+        subtitle: 'Sorteo Especial',
         description: null, // Lo renderizaremos con el componente PolloLlenoContent
         icon: Trophy,
         color: COLORS.accentText,
@@ -57,7 +57,7 @@ const GAME_MODES = [
     {
         id: 'millonario',
         title: 'Pollo Millonario',
-        subtitle: 'Sorteo Especial',
+        subtitle: 'Sorteo Extra-ordinario',
         // Texto ajustado para usar el amarillo de contraste
         description: <p className={COLORS.primaryText}>Tickets pre-impresos con combinaciones únicas. <b className={COLORS.highlightText}>¡Gana según tus aciertos!</b></p>,
         icon: Ticket,
@@ -334,12 +334,14 @@ export function HeroSection() {
                                         {currentGame.id === 'pollo-lleno' ? (
                                             <div className="text-left">
                                                 <h3 className={`text-2xl font-black ${currentGame.color}`}>{currentGame.title}</h3>
-                                                <span className={`text-xs font-semibold ${COLORS.subtitleText} px-2 py-0.5 rounded-full uppercase`}>{currentGame.subtitle}</span>
+                                                <span className={`flex-1 max-w-xl text-center lg:text-left space-y-8">
+            <div className="inline-flex items-center gap-2 bg-yellow-400/20 border border-yellow-400/50 px-4 py-1.5 rounded-full text-yellow-200 text-sm font-bold animate-pulse`}>{currentGame.subtitle}</span>
                                             </div>
                                         ) : (
                                             <>
                                                 <h3 className={`text-3xl font-black mb-1 ${currentGame.color} tracking-tight`}>{currentGame.title}</h3>
-                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${COLORS.subtitleText} uppercase tracking-widest bg-green-800/50`}>{currentGame.subtitle}</span>
+                                                <span className={`flex-1 max-w-xl text-center lg:text-left space-y-8">
+            <div className="inline-flex items-center gap-2 bg-yellow-400/20 border border-yellow-400/50 px-4 py-1.5 rounded-full text-yellow-200 text-sm font-bold animate-pulse`}>{currentGame.subtitle}</span>
                                             </>
                                         )}
                                     </div>
