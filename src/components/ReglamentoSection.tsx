@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
-const mikaela = '/figures/21 MIKAELA-01.png'
+const mikaela = '/figures2/21 MIKAELA.png'
 
 export function ReglamentoSection() {
   return (

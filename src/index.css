@@ -40,7 +40,7 @@
 .card-hover-effect:hover {
     transform: scale(1.05); 
     background-image: linear-gradient(180deg, #E4332F 0%, #E95731 35%, #F79133 70%, #FDEB37 100%) !important;
-    z-index: 50; 
+    z-index: 40; /* ¡CLAVE! Reducido a 40 para que el header con z-50 lo tape */
     box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
     border-color: transparent;
 }
@@ -49,13 +49,11 @@
 .card-hover-effect:hover .card-image-content {
     /* Se mantiene el escalado y el movimiento, pero el centrado del wrapper 
        y la transición lo hacen más suave y centrado en el punto de origen.
-       Ajusté el translateY a -15px. */
-    transform: scale(1.4) translateY(-15px); 
+       Ajusté el translateY a -5px. */
+    transform: scale(1.2) translateY(-5px);
     filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); /* Sombra más fuerte */
 }
 
-/* NOTA: Tu estilo anterior de .image-wrapper:hover .zoom-image ya no es necesario
-   ya que el efecto de zoom lo aplicamos directamente al hacer hover en la tarjeta (.card-hover-effect:hover img) */
 
 /* Contenedor del número (h20 w20 es un ejemplo, ajústalo) */
 .figure-number-wrapper {
@@ -66,7 +64,7 @@
     
     /* Importante para mantener el color/borde */
     position: relative; 
-    z-index: 60; /* Asegura que esté por encima de la tarjeta en hover (z-index: 50) */
+    z-index: 40; /* Asegura que esté por encima de la tarjeta en hover (z-index: 40) */
 }
 
 .figure-number-wrapper p {
@@ -75,14 +73,14 @@
     height: 40px; /* Tamaño del círculo (Alto) */
     line-height: 40px; /* Centra verticalmente el texto */
     border-radius: 50%; /* Hace que sea un círculo */
-    background-color: white; /* Fondo blanco inicialmente */
+    background: white; /* Fondo blanco */
     
     /* ¡CLAVE!: Usa la variable de color de Tailwind/Shadcn (o un color fijo) */
     /* Aquí se asume que text-primary es un color que deseas usar para el borde */
     border: 2px solid var(--primary); /* Borde de 2px con el color primario */
     
     /* Asegúrate de que el color del texto sea visible sobre el borde/fondo */
-    color: var(--primary); 
+    color: var(--mikaela-green); 
     
     /* Desactivar la transición de color/fondo en el hover de la tarjeta */
     transition: none !important; 
