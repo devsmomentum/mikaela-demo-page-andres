@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import logo from '@/assets/images/Logo_tipografico_Mikaela_La_Pollita_Millonaria-01.png'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { FaInstagram, FaYoutube, FaTiktok,FaFacebook } from 'react-icons/fa'
 
 export function NavigationHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -48,7 +49,7 @@ export function NavigationHeader() {
             </Link>
           </div>
 
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-6 justify-end">
             <button
               onClick={() => handleNavigate('hero')}
               className="text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer"
@@ -75,6 +76,20 @@ export function NavigationHeader() {
             >
               Pollo Lleno Millonario
             </button>
+            
+            <button className="socialMedia">
+              <FaFacebook size={20} onClick={() => window.open('https://www.facebook.com/mikaelapollitamillonaria', '_blank')} className="hover:opacity-80 transition-opacity" />
+            </button>
+            <button className="socialMedia">
+              <FaInstagram size={20} onClick={() => window.open('https://www.instagram.com/mikaelapollitamillonaria/', '_blank')} className="hover:opacity-80 transition-opacity" />
+            </button>
+            <button className="socialMedia">
+              <FaYoutube size={20} onClick={() => window.open('https://www.youtube.com/@mikaelapollitamillonaria', '_blank')} className="hover:opacity-80 transition-opacity" />
+            </button>
+            <button className="socialMedia">
+              <FaTiktok size={20} onClick={() => window.open('https://www.tiktok.com/@mikaelapollitamillonaria', '_blank')} className="hover:opacity-80 transition-opacity" />
+            </button>
+
           </nav>
 
           <Button

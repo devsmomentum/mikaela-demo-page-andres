@@ -91,6 +91,7 @@
 
 .socialMedia {
   @apply flex items-center gap-4;
+  cursor: pointer;
 }
 
 :root {
