@@ -89,6 +89,23 @@ const PolloLlenoContent = ({ timeLeft }) => {
     return (
         <div className="w-full flex flex-col gap-3 mt-1 text-center">
           
+            
+
+            {/* 2. SECCIÓN MONTO RECAUDADO - Integrado con borde amarillo */}
+            <div className="bg-green-800 rounded-xl p-3 border-2 border-yellow-400 shadow-lg flex flex-col items-center relative overflow-hidden transition-shadow hover:shadow-xl">
+                
+                <span className="text-sm text-green-200 font-bold mb-1 tracking-wider uppercase">
+                    Monto Acumulado
+                </span>
+                <div className="text-2xl md:text-3xl font-black text-yellow-300 flex items-center gap-1">
+                    {metrics.pote.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
+                </div>
+                
+                <div className="mt-2 text-[10px] px-3 py-0.5 rounded-full bg-yellow-50/20 text-yellow-300 border border-yellow-300 font-medium">
+                    +2.5% vs ayer
+                </div>
+            </div>
+
             {/* 1. SECCIÓN CUENTA REGRESIVA - Fondo Verde Oscuro */}
             <div className="bg-green-800 rounded-xl p-4 shadow-inner w-full"> 
                 <div className="flex items-center justify-center gap-2 mb-3 text-yellow-300"> 
@@ -114,21 +131,6 @@ const PolloLlenoContent = ({ timeLeft }) => {
                     ))}
                 </div>
             </div>
-
-            {/* 2. SECCIÓN MONTO RECAUDADO - Integrado con borde amarillo */}
-            <div className="bg-green-800 rounded-xl p-3 border-2 border-yellow-400 shadow-lg flex flex-col items-center relative overflow-hidden transition-shadow hover:shadow-xl">
-                
-                <span className="text-sm text-green-200 font-bold mb-1 tracking-wider uppercase">
-                    Monto Acumulado
-                </span>
-                <div className="text-2xl md:text-3xl font-black text-yellow-300 flex items-center gap-1">
-                    {metrics.pote.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
-                </div>
-                
-                <div className="mt-2 text-[10px] px-3 py-0.5 rounded-full bg-yellow-50/20 text-yellow-300 border border-yellow-300 font-medium">
-                    +2.5% vs ayer
-                </div>
-            </div>
             
             <div className="text-sm text-green-200 mt-2">
                 Acierta 6 figuras. <b className="text-yellow-300">Sorteo Diario.</b>
@@ -138,25 +140,33 @@ const PolloLlenoContent = ({ timeLeft }) => {
 };
 
 // Se cambia el tipo de 'figures' a 'any[]' para evitar errores de tipo al mover la definición de datos
-const MarqueeColumn = ({ figures, duration = 20, reverse = false }) => {
+const MarqueeColumn = ({ figures, duration = 100, reverse = false }) => {
+    const allFigures = useMemo(() => {
+        // Asumimos que figures es un array que siempre debe ser duplicado
+        // Si tu lista es corta, duplícala más veces para simular un movimiento más largo.
+        return [...figures, ...figures, ...figures, ...figures];
+    }, [figures]);
+
     return (
         <div className="h-full overflow-hidden flex flex-col relative flex-1" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 5%, black 95%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 5%, black 95%, transparent)' }}>
             <motion.div
                 className="flex flex-col gap-6 pb-6"
-                initial={{ y: reverse ? "-50%" : "0%" }}
-                animate={{ y: reverse ? "0%" : "-50%" }}
+                // El desplazamiento sigue siendo -50% porque ya has cuadruplicado el contenido
+                initial={{ y: reverse ? "-25%" : "0%" }}
+                animate={{ y: reverse ? "0%" : "-25%" }} 
                 transition={{
-                    duration: duration,
+                    duration: duration, // Usa un valor alto (45s, 60s, 90s) para lentitud
                     ease: "linear",
                     repeat: Infinity
                 }}
             >
-                {[...figures, ...figures].map((figure, index) => (
+                {/* Usamos el array cuadruplicado */}
+                {allFigures.map((figure, index) => (
                     <div key={`${figure.number}-${index}`} className="flex-shrink-0 px-2">
-                        <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-3 flex flex-col items-center gap-2 shadow-lg hover:scale-110 hover:bg-white/40 hover:border-primary/50 hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
+                        {/* Reintroducimos el hover de forma ligera y rápida (duration-150) */}
+                        <div className="bg-white/20 border border-white/30 rounded-xl p-3 flex flex-col items-center gap-2 shadow-lg hover:scale-[1.05] hover:bg-white/40 transition-all duration-150 group cursor-pointer">
                             <span className="text-xs font-bold text-white bg-black/30 px-2.5 py-0.5 rounded-full shadow-sm">{figure.number}</span>
-                            <div className="w-14 h-14 bg-white rounded-full p-2 shadow-inner group-hover:rotate-6 transition-transform duration-300">
-                                {/* Usamos la imagen placeholder */}
+                            <div className="w-14 h-14 bg-white rounded-full p-2 shadow-inner group-hover:rotate-3 transition-transform duration-150">
                                 <img src={figure.image} alt={figure.name} loading="lazy" className="w-full h-full object-contain drop-shadow-sm" />
                             </div>
                             <span className="text-xs font-bold text-white text-center leading-tight truncate w-full drop-shadow-md">{figure.name}</span>
@@ -252,14 +262,14 @@ export function HeroSection() {
                 <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZzI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGheiz0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
                 
                 {/* Columnas de Figuras Animadas */}
-                <div className="absolute left-0 top-0 bottom-0 w-1/4 hidden md:flex justify-center gap-4 p-4 opacity-60 hover:opacity-100 transition-opacity duration-500 z-0">
-                    <MarqueeColumn figures={shuffledFigures1} duration={35} />
-                    <MarqueeColumn figures={shuffledFigures2} duration={45} reverse />
+                <div className="absolute left-0 top-0 bottom-0 w-1/4 hidden md:flex justify-center gap-4 p-4 opacity-60 hover:opacity-100 transition-opacity duration-300 z-0">
+                    <MarqueeColumn figures={shuffledFigures1}  />
+                    <MarqueeColumn figures={shuffledFigures2}  reverse />
                 </div>
 
-                <div className="absolute right-0 top-0 bottom-0 w-1/4 hidden md:flex justify-center gap-4 p-4 opacity-60 hover:opacity-100 transition-opacity duration-500 z-0">
-                    <MarqueeColumn figures={shuffledFigures3} duration={40} />
-                    <MarqueeColumn figures={shuffledFigures4} duration={50} reverse />
+                <div className="absolute right-0 top-0 bottom-0 w-1/4 hidden md:flex justify-center gap-4 p-4 opacity-60 hover:opacity-100 transition-opacity duration-300 z-0">
+                    <MarqueeColumn figures={shuffledFigures3}  />
+                    <MarqueeColumn figures={shuffledFigures4}  reverse />
                 </div>
             </div>
 
