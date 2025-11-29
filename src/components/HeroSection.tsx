@@ -397,7 +397,7 @@ export function HeroSection() {
                     </div>
                     
                     {/* Indicadores de Puntos */}
-                    <div className="flex justify-center gap-2 mt-8">
+                    <div className="flex justify-center gap-2 mt-12">
                         {GAME_MODES.map((_, index) => (
                             <button
                                 key={index}
