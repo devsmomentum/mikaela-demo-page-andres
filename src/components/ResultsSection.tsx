@@ -67,6 +67,8 @@ export function ResultsSection() {
 
   const filteredOrdinaryResults = getFilteredOrdinaryResults()
 
+  const showEmptyMessage = !isLoading && currentResults && sorteoType === 'ordinario' && filteredOrdinaryResults.length === 0
+
   return (
     <section id="resultados" className="py-16 md:py-24 bg-card">
       <div className="container mx-auto px-4">
@@ -79,7 +81,10 @@ export function ResultsSection() {
           </p>
         </div>
 
-        <Card className="max-w-7xl mx-auto p-6 md:p-10 shadow-xl min-h-[600px]">
+        <Card className={cn(
+          "max-w-7xl mx-auto p-6 md:p-10 shadow-xl",
+          showEmptyMessage ? "min-h-fit" : "min-h-[600px]"
+        )}>
           <div className="flex flex-col md:flex-row gap-4 mb-8">
             <div className="flex-1">
               <label className="block text-sm font-medium mb-2 text-foreground">
@@ -189,7 +194,7 @@ export function ResultsSection() {
                           </div>
                           
                           {/* Aumenté las dimensiones del contenedor a h-28 w-28 (o más, ajústalo) */}
-                          <div className="image-wrapper mb-2 h-28 w-28 mx-auto relative">
+                          <div className="image-wrapper mb-2 h-20 w-20 md:h-28 md:w-28 mx-auto relative">
                               <img 
                                   src={figure?.image} 
                                   alt={figure?.name}
@@ -199,7 +204,7 @@ export function ResultsSection() {
                               />
                           </div>
                           
-                          <p className="text-sm font-medium text-foreground" style={{fontSize:'20px'}}>
+                          <p className="text-base md:text-xl font-medium text-foreground">
                               {figure?.name}
                           </p>
 
@@ -219,7 +224,7 @@ export function ResultsSection() {
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-muted-foreground">
+                    <div className="text-center py-8 text-muted-foreground" style={{color:'black'}}>
                       No hay resultados disponibles para este turno.
                     </div>
                   )}
@@ -265,7 +270,7 @@ export function ResultsSection() {
                           </div>
                           
                           {/* Aumenté las dimensiones del contenedor a h-28 w-28 (o más, ajústalo) */}
-                          <div className="image-wrapper mb-2 h-28 w-28 mx-auto relative">
+                          <div className="image-wrapper mb-2 h-20 w-20 md:h-28 md:w-28 mx-auto relative">
                               <img 
                                   src={figure?.image} 
                                   alt={figure?.name}
@@ -275,7 +280,7 @@ export function ResultsSection() {
                               />
                           </div>
                           
-                          <p className="text-sm font-medium text-foreground" style={{fontSize:'20px'}}>
+                          <p className="text-base md:text-xl font-medium text-foreground">
                               {figure?.name}
                           </p>
 
