@@ -79,10 +79,11 @@ export const lotteryApi = {
 
       console.log('[LotteryAPI] Datos crudos recibidos de Supabase:', draws);
 
-      if (!draws || draws.length === 0) {
-        console.warn('[LotteryAPI] No se encontraron sorteos para esta fecha.');
-        return undefined;
-      }
+      // if (!draws || draws.length === 0) {
+      //   console.warn('[LotteryAPI] No se encontraron sorteos para esta fecha. Usando datos mockeados.');
+      //   const mockResult = MOCK_RESULTS.find(r => r.date === params.date);
+      //   return mockResult;
+      // }
 
       // 2. Transformar datos de Supabase al formato que espera tu App (DailyResults)
       
@@ -150,13 +151,16 @@ export const lotteryApi = {
       console.log('[LotteryAPI] Resultados ordinarios procesados:', ordinary);
 
       // Para el extraordinario
-      const extraordinaryDraw = draws.find((d: any) => d.type === 'extraordinario');
+      // const extraordinaryDraw = draws.find((d: any) => d.type === 'extraordinario');
       
+      // Usar datos mockeados para el extraordinario si no hay implementación real aún
+      const mockResult = MOCK_RESULTS.find(r => r.date === params.date);
+
       const result: DailyResults = {
         date: params.date,
         ordinary: ordinary,
         extraordinary: {
-          figures: [] // TODO: Implementar lógica para extraordinario si es necesario
+          figures: mockResult ? mockResult.extraordinary.figures : []
         }
       };
 

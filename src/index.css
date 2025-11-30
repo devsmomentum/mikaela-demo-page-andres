@@ -73,7 +73,7 @@
     height: 40px; /* Tamaño del círculo (Alto) */
     line-height: 40px; /* Centra verticalmente el texto */
     border-radius: 50%; /* Hace que sea un círculo */
-    background: white; /* Fondo blanco */
+    background: linear-gradient(180deg, #E4332F 0%, #E95731 35%, #F79133 70%, #FDEB37 100%); /* Fondo blanco */
     
     /* ¡CLAVE!: Usa la variable de color de Tailwind/Shadcn (o un color fijo) */
     /* Aquí se asume que text-primary es un color que deseas usar para el borde */
@@ -84,6 +84,12 @@
     
     /* Desactivar la transición de color/fondo en el hover de la tarjeta */
     transition: none !important; 
+}
+
+.card-hover-effect:hover .figure-number-wrapper p {
+    /* Mantener el mismo estilo en hover */
+    border: 2px solid var(--primary);
+    color: white
 }
 
 .socialMedia {
