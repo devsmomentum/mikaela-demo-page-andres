@@ -92,19 +92,20 @@ export function ResultsSection() {
                 Fecha
               </label>
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    {selectedDate ? format(parseISO(selectedDate), "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal bg-background text-[#000000]",
+                          !selectedDate && "text-[#374151]"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {selectedDate ? format(parseISO(selectedDate), "PPP", { locale: es }) : <span className="text-[#374151]">Seleccionar fecha</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
                     mode="single"
                     selected={selectedDate ? parseISO(selectedDate) : undefined}
                     onSelect={(d) => {
@@ -115,10 +116,10 @@ export function ResultsSection() {
                     }}
                     disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                     initialFocus
-                    locale={es}
+                    
                   />
-                </PopoverContent>
-              </Popover>
+                    </PopoverContent>
+                  </Popover>
             </div>
 
             <div className="flex-1">
