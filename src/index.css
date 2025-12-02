@@ -45,6 +45,51 @@
     border-color: transparent;
 }
 
+.card-hover-effect-ordinario:hover {
+    transform: scale(1.05); 
+    background-image: linear-gradient(180deg, var(--mikaela-green) 10%, #84CC16 60%, #A3E635 90%, #D9F99D 100%) !important;
+    z-index: 40; /* ¡CLAVE! Reducido a 40 para que el header con z-50 lo tape */
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    border-color: transparent;
+}
+
+.figure-number-wrapper-ordinario {
+    /* El número debe estar en el centro superior. */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* Importante para mantener el color/borde */
+    position: relative; 
+    z-index: 40; /* Asegura que esté por encima de la tarjeta en hover (z-index: 40) */
+}
+
+.figure-number-wrapper-ordinario p {
+    /* El número dentro del círculo */
+    width: 40px; /* Tamaño del círculo (Ancho) */
+    height: 40px; /* Tamaño del círculo (Alto) */
+    line-height: 40px; /* Centra verticalmente el texto */
+    border-radius: 50%; /* Hace que sea un círculo */
+    background: linear-gradient(180deg, var(--mikaela-green) 20%, #84CC16 80%, #A3E635 90%, #D9F99D 100%); /* Fondo blanco */
+    
+    /* ¡CLAVE!: Usa la variable de color de Tailwind/Shadcn (o un color fijo) */
+    /* Aquí se asume que text-primary es un color que deseas usar para el borde */
+    border: 2px solid var(--primary); /* Borde de 2px con el color primario */
+    
+    /* Asegúrate de que el color del texto sea visible sobre el borde/fondo */
+    color: yellow;
+    
+    /* Desactivar la transición de color/fondo en el hover de la tarjeta */
+    transition: none !important; 
+}
+
+.card-hover-effect-ordinario:hover .figure-number-wrapper-ordinario p {
+    /* Mantener el mismo estilo en hover */
+    border: 2px solid white;
+    color: white;
+}
+
+
 /* Efecto en la imagen cuando se hace hover en la tarjeta */
 .card-hover-effect:hover .card-image-content {
     /* Se mantiene el escalado y el movimiento, pero el centrado del wrapper 
@@ -67,6 +112,7 @@
     z-index: 40; /* Asegura que esté por encima de la tarjeta en hover (z-index: 40) */
 }
 
+
 .figure-number-wrapper p {
     /* El número dentro del círculo */
     width: 40px; /* Tamaño del círculo (Ancho) */
@@ -77,7 +123,7 @@
     
     /* ¡CLAVE!: Usa la variable de color de Tailwind/Shadcn (o un color fijo) */
     /* Aquí se asume que text-primary es un color que deseas usar para el borde */
-    border: 2px solid var(--primary); /* Borde de 2px con el color primario */
+    border: 2px solid #E4332F; /* Borde de 2px con el color primario */
     
     /* Asegúrate de que el color del texto sea visible sobre el borde/fondo */
     color: var(--mikaela-green); 
@@ -86,10 +132,12 @@
     transition: none !important; 
 }
 
+
+
 .card-hover-effect:hover .figure-number-wrapper p {
     /* Mantener el mismo estilo en hover */
-    border: 2px solid var(--primary);
-    color: white
+    border: 2px solid white;
+    color: white;
 }
 
 .socialMedia {

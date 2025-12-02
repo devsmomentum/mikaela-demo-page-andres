@@ -181,13 +181,13 @@ export function ResultsSection() {
                           <Card
                           key={idx}
                           /* SE AGREGO: card-hover-effect overflow-visible */
-                          className={`p-4 text-center card-hover-effect overflow-visible ${
+                          className={`p-4 text-center card-hover-effect-ordinario overflow-visible ${
                               isMikaela ? 'border-2 border-destructive bg-destructive/5' : ''
                           }`}
                       >
                           
                           {/* NUEVO WRAPPER para el número y círculo */}
-                          <div className="figure-number-wrapper mb-3">
+                          <div className="figure-number-wrapper-ordinario mb-3" >
                               <p className="text-2xl font-bold text-primary">
                                   {result.figureNumber}
                               </p>

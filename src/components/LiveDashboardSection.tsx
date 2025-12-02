@@ -185,30 +185,21 @@ export function LiveDashboardSection() {
           </div>
 
           {/* Metrics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="border-none shadow-md hover:shadow-lg transition-shadow bg-card">
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <span className="text-sm text-slate-600 font-bold mb-2">Monto Recaudado</span>
+          <div className="grid w-full h-full gap-4">
+            <Card className="border-4 border-primary/20 shadow-2xl hover:shadow-3xl transition-all bg-gradient-to-br from-white to-slate-50 transform hover:scale-[1.02]">
+              <CardContent className="p-8 md:p-14 flex flex-col items-center text-center justify-center h-full">
+                <span className="text-xl md:text-2xl text-slate-500 font-black mb-4 uppercase tracking-widest">Monto Recaudado</span>
                 {/* Monto de prueba sin base de datos */}
-                <div className="text-3xl font-bold text-primary flex items-center gap-1">
-                  {(isSameDay(parseISO(selectedDraw?.date || ''), new Date()) && new Date().getHours() >= 20 ? metrics.result : metrics.pote).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
+                <div className="text-6xl md:text-8xl font-black text-primary flex flex-col md:flex-row items-center md:items-baseline gap-2 tracking-tighter drop-shadow-md leading-none">
+                  {(isSameDay(parseISO(selectedDraw?.date || ''), new Date()) && new Date().getHours() >= 20 ? metrics.result : metrics.pote).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
+                  <span className="text-4xl md:text-5xl text-primary/40 font-bold">Bs</span>
                 </div>
-                <Badge variant="outline" className="mt-2 text-xs bg-green-50 text-green-700 border-green-200">
+                <Badge variant="outline" className="mt-6 text-base px-4 py-1.5 bg-green-100 text-green-800 border-green-300 font-bold shadow-sm">
                   +2.5% vs ayer
                 </Badge>
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-md hover:shadow-lg transition-shadow bg-card">
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <span className="text-sm text-slate-600 font-bold mb-2">Tickets Jugados Hoy</span>
-                <div className="text-3xl font-bold text-primary flex items-center gap-2">
-                  <Ticket className="w-6 h-6" />
-                  {metrics.tickets}
-                </div>
-                <span className="text-xs font-bold text-primary mt-1">Última jugada hace 2s</span>
-              </CardContent>
-            </Card>
           </div>
         </div>
 
@@ -335,7 +326,10 @@ export function LiveDashboardSection() {
                 <div className="flex flex-col items-center">
                   <span className="text-xs font-bold text-primary-foreground/80 uppercase tracking-wider">Pote Total</span>
                   <div className="text-2xl font-bold text-[var(--mikaela-gold)] flex items-center gap-1">
-                    {(isSameDay(parseISO(selectedDraw.date), new Date()) ? metrics.result : selectedDraw.totalPot).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
+                    {isSameDay(parseISO(selectedDraw.date), new Date()) && new Date().getHours() < 20 
+                      ? "Pendiente" 
+                      : `${(isSameDay(parseISO(selectedDraw.date), new Date()) ? metrics.result : selectedDraw.totalPot).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs`
+                    }
                   </div>
                 </div>
 
