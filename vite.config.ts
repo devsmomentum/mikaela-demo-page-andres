@@ -26,7 +26,6 @@ export default defineConfig({
   server: {
     host: true, // Expose to local network
     allowedHosts: [
-        // 'firewall-known-coordinates-ski.trycloudflare.com',
         'localhost', // Opcional, pero buena práctica
     ],
   },
