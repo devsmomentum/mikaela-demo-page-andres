@@ -142,20 +142,20 @@ const PolloLlenoContent = ({ timeLeft }) => {
 // Se cambia el tipo de 'figures' a 'any[]' para evitar errores de tipo al mover la definición de datos
 const MarqueeColumn = ({ figures, duration = 100, reverse = false, className = "" }) => {
     const allFigures = useMemo(() => {
-        // Asumimos que figures es un array que siempre debe ser duplicado
-        // Si tu lista es corta, duplícala más veces para simular un movimiento más largo.
-        return [...figures, ...figures, ...figures, ...figures];
+        // Reducimos la duplicación a 2 veces para mejorar el rendimiento (menos nodos DOM)
+        // Con 40 figuras, 2x son 80 elementos, suficiente para cubrir la pantalla varias veces.
+        return [...figures, ...figures];
     }, [figures]);
 
     return (
         <div className={`h-full overflow-hidden flex flex-col relative flex-1 ${className}`} style={{ maskImage: 'linear-gradient(to bottom, transparent, black 5%, black 95%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 5%, black 95%, transparent)' }}>
             <motion.div
-                className="flex flex-col gap-6 pb-6"
-                // El desplazamiento sigue siendo -50% porque ya has cuadruplicado el contenido
-                initial={{ y: reverse ? "-25%" : "0%" }}
-                animate={{ y: reverse ? "0%" : "-25%" }} 
+                className="flex flex-col gap-6 pb-6 will-change-transform"
+                // Ajustamos el desplazamiento a -50% ya que ahora solo duplicamos una vez
+                initial={{ y: reverse ? "-50%" : "0%" }}
+                animate={{ y: reverse ? "0%" : "-50%" }} 
                 transition={{
-                    duration: duration, // Usa un valor alto (45s, 60s, 90s) para lentitud
+                    duration: duration, 
                     ease: "linear",
                     repeat: Infinity
                 }}
