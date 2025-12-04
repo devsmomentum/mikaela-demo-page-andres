@@ -33,28 +33,28 @@ export function NavigationHeader() {
       <button className="socialMedia" aria-label="Facebook">
         <FaFacebook 
           size={20} 
-          onClick={() => window.open('https://www.facebook.com/mikaelapollitamillonaria', '_blank')} 
+          onClick={() => window.open('https://www.facebook.com/profile.php?id=61583829371206', '_blank')} 
           className="hover:opacity-80 transition-opacity" 
         />
       </button>
       <button className="socialMedia" aria-label="Instagram">
         <FaInstagram 
           size={20} 
-          onClick={() => window.open('https://www.instagram.com/mikaelapollitamillonaria/', '_blank')} 
+          onClick={() => window.open('https://www.instagram.com/mikaelalapollitam?igsh=MXQ2ZnR3bzM4YTdpZg==', '_blank')} 
           className="hover:opacity-80 transition-opacity" 
         />
       </button>
       <button className="socialMedia" aria-label="YouTube">
         <FaYoutube 
           size={20} 
-          onClick={() => window.open('https://www.youtube.com/@mikaelapollitamillonaria', '_blank')} 
+          onClick={() => window.open('https://m.youtube.com/@MikaelaLapollitamillonaria', '_blank')} 
           className="hover:opacity-80 transition-opacity" 
         />
       </button>
       <button className="socialMedia" aria-label="TikTok">
         <FaTiktok 
           size={20} 
-          onClick={() => window.open('https://www.tiktok.com/@mikaelapollitamillonaria', '_blank')} 
+          onClick={() => window.open('https://www.tiktok.com/@mikaelalapollitam?_r=1&_t=ZM-91vRgZS80TI', '_blank')} 
           className="hover:opacity-80 transition-opacity" 
         />
       </button>
