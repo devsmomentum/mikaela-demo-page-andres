@@ -1,169 +1,247 @@
-# Guía Maestra de Integración: Mikaela (Supabase)
+# Guía de Integración Backend - Lotería Mikaela
 
-Esta guía detalla el proceso completo para conectar el frontend de "Mikaela: La Pollita Millonaria" con una base de datos real en Supabase, reemplazando los datos simulados (mocks) actuales.
+Este documento detalla los pasos técnicos y el código necesario para conectar el frontend de "Mikaela La Pollita Millonaria" con una base de datos real en Supabase.
 
-## 1. Configuración Inicial
+## 1. Diseño de Base de Datos (SQL Script)
 
-### Base de Datos (Supabase)
-Asegúrate de haber ejecutado el script `SUPABASE_SCHEMA.sql` en tu proyecto de Supabase. Esto creará las tablas necesarias:
-- `figures`: Catálogo de las 40 figuras.
-- `draws`: Registro de sorteos (Ordinarios y Extraordinarios).
-- `draw_results`: Resultados de cada sorteo (relación 1:N con draws).
-- `tickets`: Tickets comprados por los usuarios.
+Copia y ejecuta este script en el **SQL Editor** de tu proyecto en Supabase. Esto creará las tablas necesarias para manejar la configuración del juego, los sorteos y los tickets.
 
-### Configuración del Proyecto (`src/lib/lottery-data.ts`)
-El proyecto ahora utiliza un objeto centralizado `LOTTERY_CONFIG` para manejar constantes. Asegúrate de que los valores en este archivo coincidan con tu lógica de negocio real (horarios, precios, multiplicadores).
+```sql
+-- 1. Tabla de Configuración Global (Maneja precios, potes y textos de premios)
+-- Esta tabla evita tener valores "hardcoded" en el frontend.
+CREATE TABLE public.game_settings (
+    id INT PRIMARY KEY DEFAULT 1,
+    default_pot DECIMAL(12,2) NOT NULL DEFAULT 15450.00, -- Monto base del pote
+    current_jackpot DECIMAL(12,2) NOT NULL DEFAULT 20000.00, -- Pote actual (Pollo Lleno)
+    hero_initial_pot DECIMAL(12,2) NOT NULL DEFAULT 12500.00, -- Pote inicial para animaciones
+    ticket_price DECIMAL(10,2) NOT NULL DEFAULT 5.00, -- Precio por ticket
+    special_prize_label_1 TEXT DEFAULT '$50,000', -- Texto premio especial 1
+    special_prize_label_2 TEXT DEFAULT '$45,000', -- Texto premio especial 2
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-## 2. Integración por Módulos
+-- Insertar la configuración inicial (Solo debe existir una fila con ID 1)
+INSERT INTO public.game_settings (id, default_pot, current_jackpot)
+VALUES (1, 15450.00, 20000.00);
 
-A continuación se detalla cómo actualizar `src/services/lottery-api.ts` para cada funcionalidad.
+-- Restricción para asegurar que solo exista una fila de configuración
+ALTER TABLE public.game_settings ADD CONSTRAINT single_row_check CHECK (id = 1);
 
-### A. Catálogo de Figuras (`getFigures`)
+-- 2. Tabla de Sorteos (Draws)
+-- Almacena los resultados históricos y del día.
+CREATE TABLE public.draws (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    draw_date DATE NOT NULL,
+    draw_type TEXT NOT NULL CHECK (draw_type IN ('ordinario', 'extraordinario')),
+    draw_time TIME, -- Solo relevante para sorteos ordinarios (ej: '10:00:00')
+    winning_figures INTEGER[] DEFAULT '{}', -- Array de números ganadores (ej: [5] o [1,2,3,4,5,6])
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-**Objetivo:** Cargar las 40 figuras desde la base de datos en lugar del array estático.
+-- Índices para búsquedas rápidas por fecha (usado en ResultsSection)
+CREATE INDEX idx_draws_date ON public.draws(draw_date);
 
-1.  **Poblar Datos:** Ejecuta los `INSERT` del archivo `SUPABASE_SCHEMA.sql` para llenar la tabla `figures`.
-2.  **Actualizar Servicio:**
-    ```typescript
-    getFigures: async () => {
-      const { data, error } = await supabase
-        .from('figures')
-        .select('*')
-        .order('number', { ascending: true });
-        
-      if (error) {
-        console.error('Error fetching figures:', error);
-        return LOTTERY_FIGURES; // Fallback a estático si falla
-      }
-      return data;
-    }
-    ```
+-- 3. Tabla de Tickets (Jugadas)
+-- Almacena cada ticket vendido.
+CREATE TABLE public.tickets (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    ticket_serial TEXT NOT NULL, -- Ej: "T-1005"
+    figures INTEGER[] NOT NULL, -- Los números jugados por el usuario
+    draw_id UUID REFERENCES public.draws(id), -- (Opcional) Relación con un sorteo específico
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'winner', 'loser')),
+    prize_amount DECIMAL(12,2), -- Monto ganado si es winner
+    match_count INTEGER DEFAULT 0, -- Cantidad de aciertos
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-### B. Resultados de Sorteos (`getResults`)
+-- Habilitar Realtime para que el Dashboard se actualice en vivo
+-- Esto permite escuchar eventos INSERT/UPDATE desde el frontend
+alter publication supabase_realtime add table public.tickets;
+alter publication supabase_realtime add table public.game_settings;
+```
 
-**Objetivo:** Obtener los resultados del día (Ordinarios y Extraordinarios) para la sección "Resultados".
+## 2. Implementación de Servicios (`services/lottery-api.ts`)
 
-**Lógica de Mapeo:**
-El frontend espera un objeto `DailyResults`. Debes transformar la respuesta plana de Supabase a esta estructura anidada.
+A continuación se muestra el código TypeScript que debe reemplazar los comentarios `// TODO` en el archivo `lottery-api.ts`.
 
-**Implementación en `getResults`:**
+### A. Función `getGameSettings()`
+Obtiene la configuración monetaria dinámica.
+
 ```typescript
-getResults: async (params: GetResultsPayload): Promise<DailyResults | undefined> => {
-    // 1. Definir rango de fecha (00:00 a 23:59 del día solicitado)
-    const startDate = params.date;
-    const endDate = new Date(params.date);
-    endDate.setDate(endDate.getDate() + 1);
-    const endDateStr = endDate.toISOString().split('T')[0];
-
-    // 2. Consultar Supabase (Draws + Results)
-    const { data: draws, error } = await supabase
-        .from('draws')
-        .select(`
-            *,
-            draw_results (
-                figure_number,
-                position
-            )
-        `)
-        .gte('date', startDate)
-        .lt('date', endDateStr);
+getGameSettings: async (): Promise<GameSettings | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('game_settings')
+      .select('*')
+      .single();
 
     if (error) throw error;
 
-    // 3. Separar por tipo
-    const ordinaryDraws = draws.filter(d => d.type === 'ordinario');
-    const extraordinaryDraw = draws.find(d => d.type === 'extraordinario');
-
-    // 4. Construir respuesta
     return {
-        date: params.date,
-        ordinary: ordinaryDraws.map(d => ({
-            // Formatear hora (ej: "10:00:00" -> "10:00 AM")
-            time: format(new Date(`2000-01-01T${d.time}`), 'hh:mm a'),
-            figureNumber: d.draw_results[0]?.figure_number || 0
-        })).sort((a, b) => ...), // Ordenar por hora
-        extraordinary: {
-            figures: extraordinaryDraw 
-                ? extraordinaryDraw.draw_results
-                    .sort((a, b) => a.position - b.position) // Importante mantener orden
-                    .map(r => r.figure_number)
-                : []
-        }
+      defaultPot: data.default_pot,
+      currentJackpot: data.current_jackpot,
+      heroInitialPot: data.hero_initial_pot,
+      specialPrizes: {
+        prize1: data.special_prize_label_1,
+        prize2: data.special_prize_label_2
+      },
+      pricing: {
+        ticketPrice: data.ticket_price
+      }
     };
+  } catch (error) {
+    console.error('[LotteryAPI] Error fetching settings:', error);
+    return null;
+  }
 }
 ```
 
-### C. Tablero en Vivo (`getLiveMetrics` y `getLiveFeed`)
+### B. Función `getResults(date)`
+Busca resultados de un día específico y los agrupa por tipo.
 
-**Objetivo:** Mostrar estadísticas en tiempo real y el feed de tickets comprados.
-
-**1. Métricas (`getLiveMetrics`):**
-Debes realizar consultas de agregación (count, sum) en Supabase.
 ```typescript
-getLiveMetrics: async () => {
-    // Obtener total de tickets hoy
-    const today = new Date().toISOString().split('T')[0];
+getResults: async (date: string): Promise<DailyResults | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('draws')
+      .select('*')
+      .eq('draw_date', date);
+
+    if (error) throw error;
+
+    const ordinary: OrdinaryResult[] = [];
+    let extraordinary: ExtraordinaryResult = { figures: [] };
+
+    data.forEach(draw => {
+      if (draw.draw_type === 'ordinario') {
+        // Formatear hora simple de '10:00:00' a '10:00 AM'
+        // Nota: Se recomienda usar date-fns para esto en producción
+        const [hours, minutes] = draw.draw_time.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        const timeFormatted = `${hour12}:${minutes} ${ampm}`;
+
+        ordinary.push({
+          time: timeFormatted,
+          figureNumber: draw.winning_figures[0] 
+        });
+      } else if (draw.draw_type === 'extraordinario') {
+        extraordinary = { figures: draw.winning_figures };
+      }
+    });
+
+    // Ordenar resultados ordinarios por hora si es necesario
+    ordinary.sort((a, b) => new Date('1970/01/01 ' + a.time).getTime() - new Date('1970/01/01 ' + b.time).getTime());
+
+    return { date, ordinary, extraordinary };
+  } catch (error) {
+    console.error('[LotteryAPI] Error fetching results:', error);
+    return null;
+  }
+}
+```
+
+### C. Función `getRecentTickets(limit)`
+Para alimentar el feed de "Últimas Jugadas".
+
+```typescript
+getRecentTickets: async (limit: number = 5): Promise<Ticket[]> => {
+  const { data, error } = await supabase
+    .from('tickets')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data.map(t => ({
+    id: t.id,
+    ticketNumber: t.ticket_serial,
+    figures: t.figures,
+    date: t.created_at,
+    status: t.status,
+    prize: t.prize_amount ? `${t.prize_amount} Bs` : undefined
+  }));
+}
+```
+
+## 3. Implementación de Realtime (`LiveDashboardSection.tsx`)
+
+Para que el Dashboard muestre tickets entrando en vivo y actualizaciones del pote sin recargar la página.
+
+Ubica el `useEffect` comentado en `LiveDashboardSection.tsx` y usa este código:
+
+```typescript
+useEffect(() => {
+  // 1. Crear canal de suscripción
+  const channel = supabase
+    .channel('live-dashboard')
     
-    const { count: ticketsCount } = await supabase
-        .from('tickets')
-        .select('*', { count: 'exact', head: true })
-        .gte('purchase_date', today);
+    // Escuchar nuevos tickets (INSERT en tabla tickets)
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'tickets' },
+      (payload) => {
+        const newTicketRaw = payload.new;
+        
+        // Mapear datos crudos a la interfaz Ticket del frontend
+        const newTicket: Ticket = {
+            id: newTicketRaw.id,
+            ticketNumber: newTicketRaw.ticket_serial,
+            figures: newTicketRaw.figures,
+            date: newTicketRaw.created_at,
+            status: newTicketRaw.status
+        };
 
-    // Obtener Pote (suma de draws.total_pot o lógica personalizada)
-    // ...
+        // Actualizar el feed visual (agregamos al principio, mantenemos máx 5)
+        setFeed(prev => [newTicket, ...prev.slice(0, 4)]);
+        
+        // Actualizar contador de tickets vendidos visualmente
+        setMetrics(prev => ({ ...prev, ticketsSold: prev.ticketsSold + 1 }));
+      }
+    )
 
-    return {
-        pote: LOTTERY_CONFIG.PRICING.POLLO_LLENO_POT, // O valor calculado real
-        ganadores: 0, // Calcular query de tickets con status='winner'
-        tickets: ticketsCount || 0
-    };
-}
+    // Escuchar cambios en el Pote (UPDATE en game_settings)
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'game_settings' },
+      (payload) => {
+        const newSettings = payload.new;
+        // Actualizar el monto del pote en vivo
+        setMetrics(prev => ({ ...prev, pote: newSettings.current_jackpot }));
+      }
+    )
+    .subscribe();
+
+  // Limpieza de suscripción al desmontar el componente
+  return () => {
+    supabase.removeChannel(channel);
+  }
+}, [])
 ```
 
-**2. Feed de Tickets (`getLiveFeed`):**
-```typescript
-getLiveFeed: async () => {
-    const { data } = await supabase
-        .from('tickets')
-        .select('serial_number, selected_figures')
-        .order('purchase_date', { ascending: false })
-        .limit(10);
+## 4. Configuración de Seguridad (RLS)
 
-    return data?.map(t => ({
-        id: t.serial_number,
-        figures: t.selected_figures
-    })) || [];
-}
+Es crítico configurar esto en el panel de Supabase (**Authentication -> Policies**) para proteger la data.
+
+*   **Lectura Pública (SELECT):**
+    Crea una política en `game_settings`, `draws` y `tickets` que permita SELECT al rol `anon` (público) y `authenticated`.
+    *   Ejemplo: `Enable read access for all users` -> `true`.
+
+*   **Escritura Restringida (INSERT/UPDATE):**
+    **NO** permitas escritura pública.
+    Solo el rol `service_role` (backend administrativo) o usuarios autenticados con rol de admin deben poder crear sorteos o modificar el pote.
+
+## 5. Variables de Entorno
+
+Asegúrate de tener un archivo `.env` en la raíz de tu proyecto React con las credenciales de tu proyecto Supabase:
+
+```env
+VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
+VITE_SUPABASE_ANON_KEY=tu-clave-anonima-larga
 ```
-
-### D. Historial de Tickets (`getTicketHistory`)
-
-**Objetivo:** Permitir al usuario ver sus jugadas pasadas y si ganaron.
-
-**Implementación:**
-Esta es la consulta más compleja, ya que requiere cruzar `tickets` con `draws` y `draw_results` para determinar si hubo aciertos.
-
-*Recomendación:* Para simplificar el frontend, crea una **Vista en Supabase** o una **Edge Function** que devuelva el ticket ya procesado con su estado (Ganador/Perdedor) y aciertos, en lugar de calcularlo todo en el cliente.
-
-Si lo haces en el cliente (`lottery-api.ts`):
-1. Obtener tickets paginados.
-2. Para cada ticket, obtener el sorteo asociado (`draw_id`).
-3. Comparar `ticket.selected_figures` con `draw.draw_results`.
-4. Calcular aciertos y premio según `LOTTERY_CONFIG.GAME_RULES`.
-
-## 3. Flujo Operativo (Admin)
-
-Para que el sistema funcione, necesitas una forma de ingresar los datos. Como no hay panel de administración frontend aún, puedes usar el **Table Editor** de Supabase:
-
-1.  **Crear Sorteos Diarios:**
-    - Inserta 10 filas en `draws` con `type='ordinario'` y las horas correspondientes.
-    - Inserta 1 fila en `draws` con `type='extraordinario'` para las 8:00 PM.
-
-2.  **Cargar Resultados:**
-    - Cuando salga un resultado, inserta una fila en `draw_results` vinculada al `draw_id` correspondiente con el `figure_number` ganador.
-
-## 4. Próximos Pasos Recomendados
-
-1.  **Autenticación:** Implementar Supabase Auth para identificar a los usuarios y mostrar *su* historial de tickets real.
-2.  **Panel Admin:** Desarrollar una interfaz simple para que el operador cargue los resultados sin entrar a la base de datos directa.
-3.  **Edge Functions:** Mover la lógica de "verificar ganador" al servidor para mayor seguridad.

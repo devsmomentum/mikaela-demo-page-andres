@@ -20,13 +20,7 @@ export const LOTTERY_CONFIG = {
     EXTRAORDINARY_TIME: "08:00 PM",
     EXTRAORDINARY_HOUR_24: 20, // 8 PM
   },
-  PRICING: {
-    DEFAULT_POT: 15450.00,
-    POLLO_LLENO_POT: 20000.00,
-    INITIAL_HERO_POT: 12500.00,
-    SPECIAL_GAME_PRIZE_1: "$50,000",
-    SPECIAL_GAME_PRIZE_2: "$45,000",
-  },
+  
   UI_TEXTS: {
     POLLO_LLENO_TITLE: "Pollo Lleno",
     POLLO_LLENO_SUBTITLE: "Sorteo Especial",
@@ -87,35 +81,8 @@ export const LOTTERY_FIGURES: LotteryFigure[] = [
   { number: 40, name: "Mesa", emoji: "🪑", image: "/figures2/40 MESA.png" },
 ]
 
-export interface DailyDraw {
-  date: string // YYYY-MM-DD
-  totalPot: number
-  winningFigures: number[]
-  winnersCount: {
-    firstPlace: number
-    secondPlace: number
-  }
-}
-
 export const getFigureByNumber = (num: number): LotteryFigure | undefined => {
   return LOTTERY_FIGURES.find(fig => fig.number === num)
-}
-
-export type SorteoType = 'ordinario' | 'extraordinario'
-
-export interface OrdinaryResult {
-  time: string
-  figureNumber: number
-}
-
-export interface ExtraordinaryResult {
-  figures: number[]
-}
-
-export interface DailyResults {
-  date: string
-  ordinary: OrdinaryResult[]
-  extraordinary: ExtraordinaryResult
 }
 
 export const ORDINARY_TIMES = [
@@ -130,59 +97,3 @@ export const ORDINARY_TIMES = [
   "06:00 PM",
   "07:00 PM",
 ]
-
-const generateRandomFigure = () => Math.floor(Math.random() * 40) + 1
-
-const generateRandomExtraordinary = (): number[] => {
-  const figures = new Set<number>()
-  while (figures.size < 6) {
-    figures.add(generateRandomFigure())
-  }
-  return Array.from(figures)
-}
-
-const generateOrdinaryResults = (): OrdinaryResult[] => {
-  return ORDINARY_TIMES.map(time => ({
-    time,
-    figureNumber: generateRandomFigure()
-  }))
-}
-
-const generateDailyResults = (daysAgo: number): DailyResults => {
-  const date = new Date()
-  date.setDate(date.getDate() - daysAgo)
-  const isToday = daysAgo === 0
-  
-  return {
-    date: date.toISOString().split('T')[0],
-    ordinary: generateOrdinaryResults(),
-    extraordinary: {
-      figures: isToday ? [] : generateRandomExtraordinary()
-    }
-  }
-}
-
-export const MOCK_RESULTS: DailyResults[] = Array.from({ length: 30 }, (_, i) => generateDailyResults(i))
-
-export interface DailyDraw {
-  date: string // YYYY-MM-DD
-  totalPot: number
-  winningFigures: number[]
-  winnersCount: {
-    firstPlace: number
-    secondPlace: number
-  }
-}
-
-export const DAILY_DRAWS: DailyDraw[] = MOCK_RESULTS.map((result, index) => {
-  const isToday = index === 0
-  return {
-    date: result.date,
-    totalPot: isToday ? LOTTERY_CONFIG.PRICING.DEFAULT_POT : Math.floor(Math.random() * 5000) + 10000,
-    winningFigures: result.extraordinary.figures,
-    winnersCount: {
-      firstPlace: isToday ? 0 : Math.floor(Math.random() * LOTTERY_CONFIG.GAME_RULES.WINNERS_COUNT_POLLO_LLENO) + 1,
-      secondPlace: isToday ? 0 : Math.floor(Math.random() * 10) + 5
-    }
-  }
-})

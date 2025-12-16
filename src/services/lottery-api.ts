@@ -1,346 +1,171 @@
-import { DailyResults, MOCK_RESULTS, LOTTERY_FIGURES, OrdinaryResult, LOTTERY_CONFIG } from '@/lib/lottery-data';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { supabase } from '@/lib/supabase';
 
-// Tipos de Payload para las peticiones API
-// Estos interfaces definen qué datos espera el backend recibir
+// --- INTERFACES (CONTRATO CON EL BACKEND) ---
 
-export interface GetResultsPayload {
-  date: string; // Formato YYYY-MM-DD
-  type?: 'ordinario' | 'extraordinario';
+export interface OrdinaryResult {
+  time: string;       // Ej: "10:00 AM"
+  figureNumber: number;
 }
 
-export interface GetSpecialGameHistoryPayload {
-  year: number;
-  month: number; // 0-11
+export interface ExtraordinaryResult {
+  figures: number[];  // Array de 6 números
 }
 
-// Tipos de Respuesta de la API
-// Estos interfaces definen qué datos devolverá el backend
+export interface DailyResults {
+  date: string;       // YYYY-MM-DD
+  ordinary: OrdinaryResult[];
+  extraordinary: ExtraordinaryResult;
+}
 
-export interface SpecialGameResult {
-  dateObj: Date;
-  dateFormatted: string;
+export interface Ticket {
+  id: string;         // UUID o Serial String
+  ticketNumber: string; // "T-1234"
   figures: number[];
-  ticketSerial: string;
-  prize: string;
-  status: 'Ganador' | 'Vacante';
+  date: string;       // ISO Date
+  status: 'pending' | 'winner' | 'loser';
+  matchCount?: number;
+  prize?: string;
 }
 
-export interface ApiResponse<T> {
-  data: T;
-  status: number;
-  message: string;
+export interface LotteryMetrics {
+  pote: number;       // Monto actual del pote
+  ticketsSold: number;// Cantidad de tickets vendidos hoy
+  lastWinner?: string;// Info del último ganador (opcional)
 }
 
-/**
- * Servicio para manejar las peticiones a la API de Lotería.
- * Actualmente simula respuestas asíncronas usando los datos mockeados.
- * 
- * Para conectar con una API real:
- * 1. Reemplazar las promesas simuladas con fetch() o axios.get()
- * 2. Asegurarse que el backend devuelva la estructura definida en las interfaces.
- */
+// NUEVO: Interfaz para la configuración global del juego (Antes hardcoded en PRICING)
+// Estos valores vendrán de la base de datos (tabla 'system_config' o similar)
+export interface GameSettings {
+  defaultPot: number;       // Monto base del pote (DEFAULT_POT)
+  currentJackpot: number;   // Pote actual del Pollo Lleno (POLLO_LLENO_POT)
+  heroInitialPot: number;   // Pote inicial para animaciones (INITIAL_HERO_POT)
+  specialPrizes: {
+    prize1: string;         // "$50,000" (SPECIAL_GAME_PRIZE_1)
+    prize2: string;         // "$45,000" (SPECIAL_GAME_PRIZE_2)
+  };
+  pricing: {
+    ticketPrice: number;    // Precio del ticket
+  };
+}
+
+export interface GetHistoryParams {
+  page: number;
+  pageSize: number;
+  date?: string;
+  search?: string;
+  filterType?: 'todos' | 'ganadores';
+}
+
+// --- SERVICIO API ---
+
 export const lotteryApi = {
-  
+
   /**
-   * Obtiene los resultados de los sorteos para una fecha específica.
-   * Endpoint sugerido: GET /api/results?date=YYYY-MM-DD
+   * Obtiene la configuración global del juego (Precios, Potes base, Premios especiales).
+   * Llama a esta función al iniciar la app para setear los valores monetarios.
    */
-  getResults: async (params: GetResultsPayload): Promise<DailyResults | undefined> => {
+  getGameSettings: async (): Promise<GameSettings | null> => {
     try {
-      console.log('[LotteryAPI] Solicitando resultados para:', params.date);
-
-      // Estrategia robusta para fechas:
-      // Usamos gte (>=) fecha_actual y lt (<) fecha_siguiente
-      // Esto funciona tanto para columnas tipo DATE como TIMESTAMP/TIMESTAMPTZ
+      console.log('[LotteryAPI] Fetching game settings...');
       
-      const today = params.date; // YYYY-MM-DD
+      // TODO: REEMPLAZAR CON LLAMADA REAL A SUPABASE
+      // const { data, error } = await supabase.from('system_config').select('*').single();
       
-      // Calcular el día siguiente
-      const dateObj = new Date(today);
-      dateObj.setDate(dateObj.getDate() + 1);
-      const tomorrow = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
-
-      console.log('[LotteryAPI] Rango de consulta (inclusive-exclusive):', today, 'a', tomorrow);
-
-      // CORRECCIÓN: La columna de fecha/hora se llama 'draw_time', no 'date'.
-      // OPTIMIZACIÓN: Seleccionamos solo las columnas necesarias para reducir la carga de red.
-      // IMPORTANTE: Para mejorar la velocidad, crea este índice en Supabase:
-      // CREATE INDEX idx_draws_lottery_date ON draws (lottery_id, draw_time);
-      const { data: draws, error } = await supabase
-        .from('draws')
-        .select('draw_time, winning_animal_number')
-        .gte('draw_time', today)
-        .lt('draw_time', tomorrow)
-        .eq('lottery_id', '142d934a-7c6a-452b-b117-c34194bcaf03');
-
-      if (error) {
-        console.error('[LotteryAPI] Error fetching draws from Supabase:', error);
-        return undefined;
-      }
-
-      console.log('[LotteryAPI] Datos crudos recibidos de Supabase:', draws);
-
-      // if (!draws || draws.length === 0) {
-      //   console.warn('[LotteryAPI] No se encontraron sorteos para esta fecha. Usando datos mockeados.');
-      //   const mockResult = MOCK_RESULTS.find(r => r.date === params.date);
-      //   return mockResult;
-      // }
-
-      // 2. Transformar datos de Supabase al formato que espera tu App (DailyResults)
-      
-      // Filtramos los sorteos. Si existe la columna 'type', la usamos. 
-      // Si no, asumimos que si tiene 'draw_time' es ordinario.
-      const ordinaryDraws = draws.filter((d: any) => 
-        d.type === 'ordinario' || (d.draw_time && d.type !== 'extraordinario')
-      );
-      
-      console.log('[LotteryAPI] Sorteos ordinarios filtrados:', ordinaryDraws);
-
-      const ordinary: OrdinaryResult[] = ordinaryDraws
-        .map((d: any) => {
-          // Formatear hora draw_time.
-          // Si es un TIMESTAMP (ej: 2025-11-24 17:00:00+00), lo parseamos correctamente.
-          let timeFormatted = d.draw_time;
-          
-          if (d.draw_time) {
-            try {
-              // Intentamos parsear como fecha completa
-              const dateObj = new Date(d.draw_time);
-              
-              if (!isNaN(dateObj.getTime())) {
-                // Es una fecha válida (TIMESTAMP)
-                timeFormatted = format(dateObj, 'hh:mm a');
-              } else {
-                // Fallback: Intentar parsear como solo hora (HH:mm:ss)
-                const parts = d.draw_time.split(':');
-                if (parts.length >= 2) {
-                  const date = new Date();
-                  // Cuidado: si parts[0] viene sucio, esto puede fallar, pero es un fallback.
-                  const hours = parseInt(parts[0]);
-                  const minutes = parseInt(parts[1]);
-                  if (!isNaN(hours) && !isNaN(minutes)) {
-                    date.setHours(hours);
-                    date.setMinutes(minutes);
-                    timeFormatted = format(date, 'hh:mm a');
-                  }
-                }
-              }
-            } catch (e) {
-              console.error('Error formatting time:', d.draw_time);
-            }
-          }
-
-          return {
-            time: timeFormatted,
-            figureNumber: Number(d.winning_animal_number), // Asegurar que sea número
-            // Helper para ordenar
-            _rawTime: d.draw_time
-          };
-        })
-        // Ordenar por hora
-        .sort((a: any, b: any) => {
-            if (!a._rawTime) return 1;
-            if (!b._rawTime) return -1;
-            return a._rawTime.localeCompare(b._rawTime);
-        })
-        // Limpiar propiedades auxiliares
-        .map((d: any) => ({
-            time: d.time,
-            figureNumber: d.figureNumber
-        }));
-
-      console.log('[LotteryAPI] Resultados ordinarios procesados:', ordinary);
-
-      // Para el extraordinario
-      // const extraordinaryDraw = draws.find((d: any) => d.type === 'extraordinario');
-      
-      // Usar datos mockeados para el extraordinario si no hay implementación real aún
-      const mockResult = MOCK_RESULTS.find(r => r.date === params.date);
-
-      const result: DailyResults = {
-        date: params.date,
-        ordinary: ordinary,
-        extraordinary: {
-          figures: mockResult ? mockResult.extraordinary.figures : []
-        }
+      // Ejemplo de respuesta esperada que el backend debe devolver:
+      /*
+      return {
+        defaultPot: data.default_pot, // 15450.00
+        currentJackpot: data.current_jackpot, // 20000.00
+        heroInitialPot: data.animation_base_pot, // 12500.00
+        specialPrizes: { 
+            prize1: data.prize_text_1, // "$50,000"
+            prize2: data.prize_text_2  // "$45,000"
+        },
+        pricing: { ticketPrice: data.ticket_price }
       };
+      */
 
-      return result;
-
+      return null;
     } catch (error) {
-      console.error('[LotteryAPI] Unexpected error in getResults:', error);
-      return undefined;
-    }
-  },
-
-  /**
-   * Obtiene el historial del juego especial (Pollo Lleno) para un mes y año específicos.
-   * Endpoint sugerido: GET /api/special-game/history?year=2024&month=10
-   */
-  getSpecialGameHistory: async (params: GetSpecialGameHistoryPayload): Promise<SpecialGameResult | null> => {
-    // SUPABASE IMPLEMENTATION:
-    /*
-    // Aquí iría la lógica para consultar la tabla de juegos especiales
-    // const { data } = await supabase...
-    */
-
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const { year, month } = params;
-    
-    // Lógica movida desde SpecialGame.tsx para simular el backend
-    const date = new Date(year, month + 1, 0); // Último día del mes
-    const day = date.getDay(); // 0 es Domingo
-    date.setDate(date.getDate() - day); // Retroceder al último domingo
-    
-    // Si la fecha es futura, no hay resultados
-    if (date > new Date()) {
+      console.error('[LotteryAPI] Error in getGameSettings:', error);
       return null;
     }
+  },
 
-    // Generación determinista de datos (simulando base de datos)
-    const seed = date.getTime();
-    const figures: number[] = [];
-    const availableFigures = [...LOTTERY_FIGURES];
-    
-    let currentSeed = seed;
-    for (let i = 0; i < 6; i++) {
-      currentSeed = (currentSeed * 9301 + 49297) % 233280;
-      const index = Math.floor((currentSeed / 233280) * availableFigures.length);
-      if (availableFigures[index]) {
-        figures.push(availableFigures[index].number);
-        availableFigures.splice(index, 1);
-      }
+  /**
+   * Obtiene los resultados de los sorteos para una fecha específica.
+   */
+  getResults: async (date: string): Promise<DailyResults | null> => {
+    try {
+      console.log(`[LotteryAPI] Fetching results for ${date}...`);
+      
+      // TODO: REEMPLAZAR CON LLAMADA REAL A SUPABASE
+      // const { data, error } = await supabase
+      //   .from('draws')
+      //   .select('*')
+      //   .eq('draw_date', date);
+      
+      return null; 
+    } catch (error) {
+      console.error('[LotteryAPI] Error in getResults:', error);
+      return null;
     }
-
-    return {
-      dateObj: date,
-      dateFormatted: format(date, "d 'de' MMMM, yyyy", { locale: es }),
-      figures: figures,
-      ticketSerial: (seed % 3 !== 0) ? `A-${seed.toString().slice(-7)}` : 'Vacante',
-      prize: (seed % 2 === 0) ? LOTTERY_CONFIG.PRICING.SPECIAL_GAME_PRIZE_1 : LOTTERY_CONFIG.PRICING.SPECIAL_GAME_PRIZE_2,
-      status: (seed % 3 !== 0) ? 'Ganador' : 'Vacante'
-    };
   },
 
   /**
-   * Obtiene el catálogo de figuras.
-   * Endpoint sugerido: GET /api/figures
+   * Obtiene las métricas en tiempo real (Pote, Tickets vendidos).
    */
-  getFigures: async () => {
-    // SUPABASE IMPLEMENTATION:
-    /*
-    const { data, error } = await supabase.from('figures').select('*').order('number');
-    if (error) throw error;
-    return data;
-    */
-    return LOTTERY_FIGURES;
+  getCurrentMetrics: async (): Promise<LotteryMetrics> => {
+    try {
+      // TODO: REEMPLAZAR CON LLAMADA REAL A SUPABASE (Tabla game_settings o stats)
+      // const { data } = await supabase.from('game_settings').select('current_pot').single();
+      
+      return {
+        pote: 0, 
+        ticketsSold: 0
+      };
+    } catch (error) {
+      console.error('[LotteryAPI] Error in getCurrentMetrics:', error);
+      return { pote: 0, ticketsSold: 0 };
+    }
   },
 
   /**
-   * Obtiene las métricas en vivo para el dashboard.
+   * Obtiene los últimos tickets vendidos para el feed en vivo.
    */
-  getLiveMetrics: async () => {
-    // SUPABASE IMPLEMENTATION:
-    // Calcular sumas de la tabla 'tickets' y 'draws'
-    return {
-      pote: LOTTERY_CONFIG.PRICING.DEFAULT_POT,
-      ganadores: 4494.00,
-      tickets: 137
-    };
+  getRecentTickets: async (limit: number = 5): Promise<Ticket[]> => {
+    try {
+      // TODO: REEMPLAZAR CON LLAMADA REAL A SUPABASE
+      // const { data } = await supabase
+      //   .from('tickets')
+      //   .select('*')
+      //   .order('created_at', { ascending: false })
+      //   .limit(limit);
+
+      return [];
+    } catch (error) {
+      console.error('[LotteryAPI] Error in getRecentTickets:', error);
+      return [];
+    }
   },
 
   /**
-   * Obtiene los últimos tickets jugados (Live Feed).
+   * Obtiene el historial de tickets con paginación y filtros.
    */
-  getLiveFeed: async () => {
-    // SUPABASE IMPLEMENTATION:
-    /*
-    const { data } = await supabase
-      .from('tickets')
-      .select('*')
-      .order('purchase_date', { ascending: false })
-      .limit(5);
-    return data.map(t => ({ id: t.serial_number, figures: t.selected_figures }));
-    */
-    return [
-      { id: '1001', figures: [1, 5, 10, 15, 20, 25] },
-      { id: '1002', figures: [2, 6, 11, 16, 21, 26] },
-      { id: '1003', figures: [3, 7, 12, 17, 22, 27] },
-      { id: '1004', figures: [4, 8, 13, 18, 23, 28] },
-      { id: '1005', figures: [21, 22, 23, 24, 29, 30] },
-    ];
-  },
-
-  /**
-   * Obtiene el historial de tickets del usuario o general.
-   */
-  getTicketHistory: async (page: number = 1, limit: number = 10) => {
-     // SUPABASE IMPLEMENTATION:
-     /*
-     const { data, count } = await supabase
-        .from('tickets')
-        .select('*, draws(*)', { count: 'exact' })
-        .range((page - 1) * limit, page * limit - 1);
-     */
-     
-     // Retornamos datos mockeados por ahora, pero la estructura está lista
-     // Importamos DAILY_DRAWS dinámicamente para evitar dependencias circulares si fuera necesario
-     const { DAILY_DRAWS } = await import('@/lib/lottery-data');
-     
-     // Lógica de generación de tickets mockeados (movida desde el componente)
-     const history = DAILY_DRAWS.flatMap((draw, drawIndex) => {
-        return Array.from({ length: 8 }).map((_, i) => {
-            const ticketId = 1000 + (drawIndex * 100) + i;
-            let ticket = Array.from({ length: 6 }, () => Math.floor(Math.random() * 40) + 1);
-            let rank = 'No Ganador';
-            let matchCount = 0;
-            let matchedFigures: number[] = [];
-            let premio = '-';
-
-            if (draw.winningFigures.length > 0) {
-                if (i === 0) { 
-                    rank = 'GANADOR';
-                    matchCount = 6;
-                    matchedFigures = draw.winningFigures.slice(0, 6);
-                    ticket = draw.winningFigures.slice(0, 6);
-                } else if (i === 1 || i === 2) { 
-                    rank = 'GANADOR';
-                    matchCount = 5;
-                    matchedFigures = draw.winningFigures.slice(0, 5);
-                    ticket = [...draw.winningFigures.slice(0, 5), (draw.winningFigures[5] % 40) + 1];
-                } else {
-                    matchCount = Math.floor(Math.random() * 4);
-                    matchedFigures = ticket.slice(0, matchCount);
-                }
-
-                if (rank === 'GANADOR') {
-                    const totalWinners = LOTTERY_CONFIG.GAME_RULES.WINNERS_COUNT_POLLO_LLENO;
-                    const perWinner = draw.totalPot / totalWinners;
-                    premio = `${perWinner.toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs`;
-                }
-            } else {
-                rank = 'Pendiente';
-            }
-
-            return {
-                id: ticketId,
-                ticketNumber: `T-${ticketId}`,
-                ticket,
-                matchedFigures,
-                matchCount,
-                rank,
-                estado: draw.winningFigures.length === 0 ? 'En Curso' : 'Finalizado',
-                premio,
-                fecha: draw.date,
-                drawData: draw
-            };
-        });
-    });
-    
-    return history;
+  getTicketHistory: async (params: GetHistoryParams) => {
+    try {
+      // TODO: REEMPLAZAR CON LLAMADA REAL A SUPABASE
+      // Construir query dinámica basada en params.date, params.search, etc.
+      
+      return {
+        data: [],
+        total: 0,
+        page: params.page,
+        totalPages: 0
+      };
+    } catch (error) {
+      console.error('[LotteryAPI] Error in getTicketHistory:', error);
+      return { data: [], total: 0, page: 1, totalPages: 0 };
+    }
   }
 };
