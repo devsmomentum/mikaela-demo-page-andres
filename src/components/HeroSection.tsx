@@ -47,7 +47,7 @@ const GAME_MODES = [
         title: LOTTERY_CONFIG.UI_TEXTS.LA_POLLITA_TITLE,
         subtitle: LOTTERY_CONFIG.UI_TEXTS.LA_POLLITA_SUBTITLE,
         // Texto ajustado para usar el amarillo de contraste
-        description: <p className={COLORS.primaryText}> <b className={COLORS.highlightText}>{LOTTERY_CONFIG.GAME_RULES.DAILY_DRAWS_COUNT} sorteos diarios</b>. Gana {LOTTERY_CONFIG.GAME_RULES.ORDINARY_MULTIPLIER}x tu apuesta, o {LOTTERY_CONFIG.GAME_RULES.SPECIAL_FIGURE_MULTIPLIER}x si sale {LOTTERY_CONFIG.GAME_RULES.SPECIAL_FIGURE_NAME} (<span className={COLORS.highlightText}>#{LOTTERY_CONFIG.GAME_RULES.SPECIAL_FIGURE_NUMBER}</span>). </p>,
+        description: <p className={COLORS.primaryText}> <b className={COLORS.highlightText}>{LOTTERY_CONFIG.GAME_RULES.DAILY_DRAWS_COUNT} sorteos diarios</b>. Gana {LOTTERY_CONFIG.GAME_RULES.ORDINARY_MULTIPLIER} veces tu apuesta o {LOTTERY_CONFIG.GAME_RULES.SPECIAL_FIGURE_MULTIPLIER} veces si sale {LOTTERY_CONFIG.GAME_RULES.SPECIAL_FIGURE_NAME} (<span className={COLORS.highlightText}>#{LOTTERY_CONFIG.GAME_RULES.SPECIAL_FIGURE_NUMBER}</span>). </p>,
         icon: Clock,
         color: COLORS.accentText,
         bgColor: COLORS.primaryIconBg,

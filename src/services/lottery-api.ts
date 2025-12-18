@@ -57,8 +57,74 @@ export interface GetHistoryParams {
 }
 
 // --- SERVICIO API ---
+/**
+ * Función auxiliar para convertir "13:00:00" (Postgres) a "01:00 PM" (Frontend)
+ * Esto es vital para que el filtro por Turno en ResultsSection siga funcionando.
+ */
+const formatPostgresTimeToAMPM = (time: string): string => {
+  const [hours, minutes] = time.split(':');
+  let h = parseInt(hours, 10);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  h = h ? h : 12; // la hora '0' debe ser '12'
+  const hStr = h < 10 ? `0${h}` : h;
+  return `${hStr}:${minutes} ${ampm}`;
+};
 
 export const lotteryApi = {
+  /**
+   * Obtiene los resultados de los sorteos para una fecha específica.
+   * Ahora consume datos reales de Mikaela (Sorteo Ordinario)
+   */
+  getResults: async ({ date }: { date: string }): Promise<DailyResults | null> => {
+    try {
+      console.log(`[LotteryAPI] Fetching results for ${date}...`);
+      
+      // Consulta con Joins para obtener la hora de la lotería y el número del premio
+      const { data, error } = await supabase
+        .from('daily_results')
+        .select(`
+          result_date,
+          lotteries (
+            draw_time
+          ),
+          prizes (
+            animal_number
+          )
+        `)
+        .eq('result_date', date);
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        return {
+          date,
+          ordinary: [],
+          extraordinary: { figures: [] }
+        };
+      }
+
+      // Mapeo de la data al formato que espera ResultsSection.tsx
+      const ordinaryResults: OrdinaryResult[] = data.map((item: any) => ({
+        // Convertimos el draw_time de la tabla lotteries
+        time: formatPostgresTimeToAMPM(item.lotteries.draw_time),
+        // Convertimos el animal_number de la tabla prizes a número
+        figureNumber: parseInt(item.prizes.animal_number, 10)
+      }));
+
+      // Retornamos el objeto DailyResults
+      // El sorteo extraordinario se mantiene vacío por ahora según instrucciones
+      return {
+        date,
+        ordinary: ordinaryResults,
+        extraordinary: { figures: [] }
+      };
+
+    } catch (error) {
+      console.error('[LotteryAPI] Error in getResults:', error);
+      return null;
+    }
+  },
 
   /**
    * Obtiene la configuración global del juego (Precios, Potes base, Premios especiales).
@@ -88,26 +154,6 @@ export const lotteryApi = {
       return null;
     } catch (error) {
       console.error('[LotteryAPI] Error in getGameSettings:', error);
-      return null;
-    }
-  },
-
-  /**
-   * Obtiene los resultados de los sorteos para una fecha específica.
-   */
-  getResults: async (date: string): Promise<DailyResults | null> => {
-    try {
-      console.log(`[LotteryAPI] Fetching results for ${date}...`);
-      
-      // TODO: REEMPLAZAR CON LLAMADA REAL A SUPABASE
-      // const { data, error } = await supabase
-      //   .from('draws')
-      //   .select('*')
-      //   .eq('draw_date', date);
-      
-      return null; 
-    } catch (error) {
-      console.error('[LotteryAPI] Error in getResults:', error);
       return null;
     }
   },

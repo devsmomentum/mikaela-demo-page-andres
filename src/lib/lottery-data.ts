@@ -6,6 +6,12 @@ export const LOTTERY_CONFIG = {
     ENDORSER: "Lotería de Caracas",
     COPYRIGHT_YEAR: new Date().getFullYear(),
   },
+  // NUEVA SECCIÓN: Muchos componentes fallan porque esto no existía
+  PRICING: {
+    DEFAULT_POT: 15450.00,
+    POLLO_LLENO_POT: 25000.00,
+    INITIAL_HERO_POT: 12500.00,
+  },
   GAME_RULES: {
     ORDINARY_MULTIPLIER: 30,
     SPECIAL_FIGURE_MULTIPLIER: 40,
@@ -18,9 +24,8 @@ export const LOTTERY_CONFIG = {
     ORDINARY_START: "10:00 AM",
     ORDINARY_END: "07:00 PM",
     EXTRAORDINARY_TIME: "08:00 PM",
-    EXTRAORDINARY_HOUR_24: 20, // 8 PM
+    EXTRAORDINARY_HOUR_24: 20,
   },
-  
   UI_TEXTS: {
     POLLO_LLENO_TITLE: "Pollo Lleno",
     POLLO_LLENO_SUBTITLE: "Sorteo Especial",
@@ -30,6 +35,15 @@ export const LOTTERY_CONFIG = {
     POLLO_MILLONARIO_SUBTITLE: "Sorteo Extra-ordinario",
   }
 }
+
+// Agrega esta constante para que LiveDashboardSection no explote al importar
+export const DAILY_DRAWS = [
+  {
+    date: new Date().toISOString().split('T')[0],
+    totalPot: 15450,
+    winningFigures: [] // Se llena cuando el sorteo ocurre
+  }
+];
 
 export interface LotteryFigure {
   number: number

@@ -40,7 +40,7 @@ export function NavigationHeader() {
       <button className="socialMedia" aria-label="Instagram">
         <FaInstagram 
           size={20} 
-          onClick={() => window.open('https://www.instagram.com/mikaelalapollitam?igsh=MXQ2ZnR3bzM4YTdpZg==', '_blank')} 
+          onClick={() => window.open('https://www.instagram.com/mikaelalapollitam', '_blank')} 
           className="hover:opacity-80 transition-opacity" 
         />
       </button>
