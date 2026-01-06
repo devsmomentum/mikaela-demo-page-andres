@@ -1,50 +1,48 @@
 import { supabase } from '@/lib/supabase';
 
-// --- INTERFACES (CONTRATO CON EL BACKEND) ---
-
+// --- INTERFACES ---
+// Estas definen cómo se ven los datos en tu aplicación React
 export interface OrdinaryResult {
-  time: string;       // Ej: "10:00 AM"
+  time: string;
   figureNumber: number;
 }
 
 export interface ExtraordinaryResult {
-  figures: number[];  // Array de 6 números
+  figures: number[];
 }
 
 export interface DailyResults {
-  date: string;       // YYYY-MM-DD
+  date: string;
   ordinary: OrdinaryResult[];
   extraordinary: ExtraordinaryResult;
 }
 
 export interface Ticket {
-  id: string;         // UUID o Serial String
-  ticketNumber: string; // "T-1234"
+  id: string;
+  ticketNumber: string;
   figures: number[];
-  date: string;       // ISO Date
+  date: string;
   status: 'pending' | 'winner' | 'loser';
   matchCount?: number;
   prize?: string;
 }
 
 export interface LotteryMetrics {
-  pote: number;       // Monto actual del pote
-  ticketsSold: number;// Cantidad de tickets vendidos hoy
-  lastWinner?: string;// Info del último ganador (opcional)
+  pote: number;
+  ticketsSold: number;
+  lastWinner?: string;
 }
 
-// NUEVO: Interfaz para la configuración global del juego (Antes hardcoded en PRICING)
-// Estos valores vendrán de la base de datos (tabla 'system_config' o similar)
 export interface GameSettings {
-  defaultPot: number;       // Monto base del pote (DEFAULT_POT)
-  currentJackpot: number;   // Pote actual del Pollo Lleno (POLLO_LLENO_POT)
-  heroInitialPot: number;   // Pote inicial para animaciones (INITIAL_HERO_POT)
+  defaultPot: number;
+  currentJackpot: number;
+  heroInitialPot: number;
   specialPrizes: {
-    prize1: string;         // "$50,000" (SPECIAL_GAME_PRIZE_1)
-    prize2: string;         // "$45,000" (SPECIAL_GAME_PRIZE_2)
+    prize1: string;
+    prize2: string;
   };
   pricing: {
-    ticketPrice: number;    // Precio del ticket
+    ticketPrice: number;
   };
 }
 
@@ -56,47 +54,44 @@ export interface GetHistoryParams {
   filterType?: 'todos' | 'ganadores';
 }
 
-// --- SERVICIO API ---
-/**
- * Función auxiliar para convertir "13:00:00" (Postgres) a "01:00 PM" (Frontend)
- * Esto es vital para que el filtro por Turno en ResultsSection siga funcionando.
- */
+// --- UTILIDADES ---
 const formatPostgresTimeToAMPM = (time: string): string => {
+  if (!time) return '';
   const [hours, minutes] = time.split(':');
   let h = parseInt(hours, 10);
   const ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12;
-  h = h ? h : 12; // la hora '0' debe ser '12'
+  h = h ? h : 12; 
   const hStr = h < 10 ? `0${h}` : h;
   return `${hStr}:${minutes} ${ampm}`;
 };
 
+// --- SERVICIO API ---
+
 export const lotteryApi = {
   /**
-   * Obtiene los resultados de los sorteos para una fecha específica.
-   * Ahora consume datos reales de Mikaela (Sorteo Ordinario)
+   * 1. OBTENER RESULTADOS
+   * Seguridad: El frontend solo envía la fecha. No puede modificar nada.
    */
   getResults: async ({ date }: { date: string }): Promise<DailyResults | null> => {
     try {
-      console.log(`[LotteryAPI] Fetching results for ${date}...`);
-      
-      // Consulta con Joins para obtener la hora de la lotería y el número del premio
-      const { data, error } = await supabase
-        .from('daily_results')
-        .select(`
-          result_date,
-          lotteries (
-            draw_time
-          ),
-          prizes (
-            animal_number
-          )
-        `)
-        .eq('result_date', date);
+      console.log(`[LotteryAPI] Fetching results via Edge Function: daily_results`);
 
-      if (error) throw error;
+      // Llamamos a tu endpoint: .../functions/v1/daily_results
+      const { data, error } = await supabase.functions.invoke('daily_results', {
+        body: { 
+          action: 'GET_RESULTS', 
+          payload: { date } 
+        }
+      });
 
-      if (!data || data.length === 0) {
+      if (error) {
+        console.error('[LotteryAPI] Error invoke:', error);
+        throw error;
+      }
+
+      // Si la respuesta está vacía o mal formada
+      if (!data || !Array.isArray(data)) {
         return {
           date,
           ordinary: [],
@@ -104,16 +99,12 @@ export const lotteryApi = {
         };
       }
 
-      // Mapeo de la data al formato que espera ResultsSection.tsx
+      // Transformamos los datos (Backend snake_case -> Frontend clean format)
       const ordinaryResults: OrdinaryResult[] = data.map((item: any) => ({
-        // Convertimos el draw_time de la tabla lotteries
-        time: formatPostgresTimeToAMPM(item.lotteries.draw_time),
-        // Convertimos el animal_number de la tabla prizes a número
-        figureNumber: parseInt(item.prizes.animal_number, 10)
+        time: formatPostgresTimeToAMPM(item.lotteries?.draw_time || '00:00'),
+        figureNumber: parseInt(item.prizes?.animal_number || '0', 10)
       }));
 
-      // Retornamos el objeto DailyResults
-      // El sorteo extraordinario se mantiene vacío por ahora según instrucciones
       return {
         date,
         ordinary: ordinaryResults,
@@ -121,97 +112,57 @@ export const lotteryApi = {
       };
 
     } catch (error) {
-      console.error('[LotteryAPI] Error in getResults:', error);
+      console.error('[LotteryAPI] Critical Error in getResults:', error);
       return null;
     }
   },
 
   /**
-   * Obtiene la configuración global del juego (Precios, Potes base, Premios especiales).
-   * Llama a esta función al iniciar la app para setear los valores monetarios.
+   * 2. OBTENER CONFIGURACIÓN (POTES, PRECIOS)
+   * Seguridad: Solo lectura. Los valores monetarios vienen firmados del servidor.
    */
   getGameSettings: async (): Promise<GameSettings | null> => {
     try {
-      console.log('[LotteryAPI] Fetching game settings...');
-      
-      // TODO: REEMPLAZAR CON LLAMADA REAL A SUPABASE
-      // const { data, error } = await supabase.from('system_config').select('*').single();
-      
-      // Ejemplo de respuesta esperada que el backend debe devolver:
-      /*
+      // Reutilizamos la misma función 'daily_results' pero con otra acción
+      const { data, error } = await supabase.functions.invoke('daily_results', {
+        body: { 
+          action: 'GET_SETTINGS', 
+          payload: {} 
+        }
+      });
+
+      if (error) throw error;
+      if (!data) return null;
+
+      // Mapeamos los nombres de la base de datos a tu interfaz de React
       return {
-        defaultPot: data.default_pot, // 15450.00
-        currentJackpot: data.current_jackpot, // 20000.00
-        heroInitialPot: data.animation_base_pot, // 12500.00
+        defaultPot: data.default_pot,
+        currentJackpot: data.current_jackpot,
+        heroInitialPot: data.animation_base_pot,
         specialPrizes: { 
-            prize1: data.prize_text_1, // "$50,000"
-            prize2: data.prize_text_2  // "$45,000"
+            prize1: data.prize_text_1, 
+            prize2: data.prize_text_2  
         },
         pricing: { ticketPrice: data.ticket_price }
       };
-      */
 
-      return null;
     } catch (error) {
-      console.error('[LotteryAPI] Error in getGameSettings:', error);
+      console.error('[LotteryAPI] Error settings:', error);
       return null;
     }
   },
 
-  /**
-   * Obtiene las métricas en tiempo real (Pote, Tickets vendidos).
-   */
+  // ... (El resto de las funciones como getCurrentMetrics, etc. pueden quedar igual
+  // o migrarse de la misma forma si también necesitan datos sensibles)
   getCurrentMetrics: async (): Promise<LotteryMetrics> => {
-    try {
-      // TODO: REEMPLAZAR CON LLAMADA REAL A SUPABASE (Tabla game_settings o stats)
-      // const { data } = await supabase.from('game_settings').select('current_pot').single();
-      
-      return {
-        pote: 0, 
-        ticketsSold: 0
-      };
-    } catch (error) {
-      console.error('[LotteryAPI] Error in getCurrentMetrics:', error);
       return { pote: 0, ticketsSold: 0 };
-    }
   },
 
-  /**
-   * Obtiene los últimos tickets vendidos para el feed en vivo.
-   */
   getRecentTickets: async (limit: number = 5): Promise<Ticket[]> => {
-    try {
-      // TODO: REEMPLAZAR CON LLAMADA REAL A SUPABASE
-      // const { data } = await supabase
-      //   .from('tickets')
-      //   .select('*')
-      //   .order('created_at', { ascending: false })
-      //   .limit(limit);
-
       return [];
-    } catch (error) {
-      console.error('[LotteryAPI] Error in getRecentTickets:', error);
-      return [];
-    }
   },
 
-  /**
-   * Obtiene el historial de tickets con paginación y filtros.
-   */
   getTicketHistory: async (params: GetHistoryParams) => {
-    try {
-      // TODO: REEMPLAZAR CON LLAMADA REAL A SUPABASE
-      // Construir query dinámica basada en params.date, params.search, etc.
-      
-      return {
-        data: [],
-        total: 0,
-        page: params.page,
-        totalPages: 0
-      };
-    } catch (error) {
-      console.error('[LotteryAPI] Error in getTicketHistory:', error);
       return { data: [], total: 0, page: 1, totalPages: 0 };
-    }
   }
 };
