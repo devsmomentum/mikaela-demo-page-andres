@@ -111,3 +111,24 @@ export const ORDINARY_TIMES = [
   "06:00 PM",
   "07:00 PM",
 ]
+
+// --- Tipos para ResultsSection ---
+export type SorteoType = 'ordinario' | 'extraordinario'
+
+export interface OrdinaryResult {
+  time: string
+  figureNumber: number
+}
+
+export interface ExtraordinaryResult {
+  figures: number[]
+}
+
+export interface DailyResults {
+  date: string
+  ordinary: OrdinaryResult[]
+  extraordinary: ExtraordinaryResult
+}
+
+// Resultados vacíos por defecto (se llenan desde la BD)
+export const MOCK_RESULTS: Record<string, DailyResults> = {}

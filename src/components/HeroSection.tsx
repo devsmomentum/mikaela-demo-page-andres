@@ -3,6 +3,7 @@ import logo from '@/assets/images/Logo Mikaela La Pollita Millonaria_Mesa de tra
 import { LOTTERY_FIGURES, LotteryFigure, LOTTERY_CONFIG } from '@/lib/lottery-data' // Asumimos que LOTTERY_FIGURES es un array de objetos
 import { useState, useMemo, useEffect, memo } from 'react' // Necesitamos useState
 import { motion, AnimatePresence } from 'framer-motion' // Importamos motion y AnimatePresence
+import { lotteryApi } from '@/services/lottery-api'
 
 // Definición de colores ajustados para fondo verde (según solicitud del usuario)
 const COLORS = {
@@ -71,20 +72,18 @@ const GAME_MODES = [
 // Componente visual para Pollo Lleno (Cuenta regresiva + Monto)
 const PolloLlenoContent = ({ timeLeft }) => {
 
-    const [metrics, setMetrics] = useState({ pote: LOTTERY_CONFIG.PRICING.INITIAL_HERO_POT }); // Simulación de métricas
+    const [pote, setPote] = useState(0);
 
-    // Simulate live updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMetrics(prev => ({
-        ...prev,
-        pote: prev.pote + Math.random() * 100,
-      }))
-    
-    }, 3000)
-
-    return () => clearInterval(interval)
-  }, [])
+    // Fetch real pot from BD on mount & every 30s
+    useEffect(() => {
+      const fetchPote = async () => {
+        const data = await lotteryApi.getMetrics();
+        setPote(data.pote);
+      };
+      fetchPote();
+      const interval = setInterval(fetchPote, 30_000);
+      return () => clearInterval(interval);
+    }, []);
 
     return (
         <div className="w-full flex flex-col gap-3 mt-1 text-center">
@@ -98,7 +97,7 @@ const PolloLlenoContent = ({ timeLeft }) => {
                     Monto Acumulado
                 </span>
                 <div className="text-2xl md:text-3xl font-black text-yellow-300 flex items-center gap-1">
-                    {metrics.pote.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
+                    {pote.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
                 </div>
                 
                 <div className="mt-2 text-[10px] px-3 py-0.5 rounded-full bg-yellow-50/20 text-yellow-300 border border-yellow-300 font-medium">

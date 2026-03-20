@@ -39,3 +39,4 @@ public/figures-circle/*.png
 
 *pdf
 *.sql
+supabase/functions/import_map.json
