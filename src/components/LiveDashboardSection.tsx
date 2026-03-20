@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination'
 import { Trophy, DollarSign, Ticket, Calendar as CalendarIcon, Clock, Star } from 'lucide-react'
 import { LOTTERY_FIGURES, LOTTERY_CONFIG } from '@/lib/lottery-data'
 import { format, parseISO, isSameDay } from 'date-fns'
@@ -23,6 +23,7 @@ export function LiveDashboardSection() {
   const [historyData, setHistoryData] = useState<HistoryTicket[]>([])
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
+  const [historyPote, setHistoryPote] = useState(0)
   const [loading, setLoading] = useState(true)
 
   // --- Filter state ---
@@ -72,6 +73,7 @@ export function LiveDashboardSection() {
     setHistoryData(response.data)
     setTotalItems(response.total)
     setTotalPages(response.totalPages)
+    setHistoryPote(response.pote ?? 0)
     if (response.winningNumbers.length > 0) {
       setWinningNumbers(response.winningNumbers)
     }
@@ -156,7 +158,6 @@ export function LiveDashboardSection() {
                 {feed.map((ticket) => (
                   <div key={ticket.id} className="flex-shrink-0 bg-white rounded-lg p-3 border border-gray-200 min-w-[320px] animate-in slide-in-from-right duration-500 shadow-sm">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-bold text-black-900">Ticket #{ticket.key_gamble || ticket.id.slice(0, 8)}</span>
                       <Badge variant="secondary" className="text-[10px] h-5 bg-black-100 text-b-700">Hace un momento</Badge>
                     </div>
                     <div className="flex gap-2 justify-center">
@@ -269,8 +270,8 @@ export function LiveDashboardSection() {
                 <div className="flex flex-col items-center">
                   <span className="text-xs font-bold text-primary-foreground/80 uppercase tracking-wider">Pote Total</span>
                   <div className="text-2xl font-bold text-[var(--mikaela-gold)] flex items-center gap-1">
-                    {metrics.pote > 0
-                      ? `${metrics.pote.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs`
+                    {historyPote > 0
+                      ? `${historyPote.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs`
                       : 'Pendiente'
                     }
                   </div>
@@ -306,7 +307,6 @@ export function LiveDashboardSection() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
-                  <TableHead className="font-bold text-[#000000]">Nro Ticket</TableHead>
                   <TableHead className="font-bold text-[#000000]">Figuras Jugadas</TableHead>
                   <TableHead className="text-center font-bold text-[#000000]">Aciertos</TableHead>
                   <TableHead className="font-bold text-[#000000]">Posición</TableHead>
@@ -316,13 +316,13 @@ export function LiveDashboardSection() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                       Cargando...
                     </TableCell>
                   </TableRow>
                 ) : historyData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                       No hay tickets para esta fecha
                     </TableCell>
                   </TableRow>
@@ -338,7 +338,6 @@ export function LiveDashboardSection() {
 
                     return (
                       <TableRow key={row.id} className="hover:bg-muted/10 transition-colors">
-                        <TableCell className="font-mono font-bold text-[#000000]">{row.key_gamble || row.id.slice(0, 8)}</TableCell>
                         <TableCell>
                           <div className="flex gap-1 flex-wrap max-w-[300px]">
                             {ticketNumbers.map((num) => {
@@ -409,20 +408,35 @@ export function LiveDashboardSection() {
                     />
                   </PaginationItem>
                   
-                  {Array.from({ length: totalPages }).map((_, i) => (
-                    <PaginationItem key={i + 1}>
-                      <PaginationLink 
-                        href="#" 
-                        isActive={currentPage === i + 1}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          setCurrentPage(i + 1)
-                        }}
-                      >
-                        {i + 1}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
+                  {(() => {
+                    const pages: (number | 'ellipsis-start' | 'ellipsis-end')[] = []
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pages.push(i)
+                    } else {
+                      pages.push(1)
+                      if (currentPage > 4) pages.push('ellipsis-start')
+                      const start = Math.max(2, currentPage - 1)
+                      const end = Math.min(totalPages - 1, currentPage + 1)
+                      for (let i = start; i <= end; i++) pages.push(i)
+                      if (currentPage < totalPages - 3) pages.push('ellipsis-end')
+                      pages.push(totalPages)
+                    }
+                    return pages.map((p) =>
+                      typeof p === 'string' ? (
+                        <PaginationItem key={p}><PaginationEllipsis /></PaginationItem>
+                      ) : (
+                        <PaginationItem key={p}>
+                          <PaginationLink
+                            href="#"
+                            isActive={currentPage === p}
+                            onClick={(e) => { e.preventDefault(); setCurrentPage(p) }}
+                          >
+                            {p}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    )
+                  })()}
 
                   <PaginationItem>
                     <PaginationNext 

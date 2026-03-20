@@ -71,6 +71,12 @@ Deno.serve(async (req) => {
             pote,
             amount_pot_raw: amountPot,
             tickets_sold: ticketsSold ?? 0,
+            _debug: {
+              today_vet: today,
+              range_start: dayStart,
+              range_end: dayEnd,
+              server_utc: new Date().toISOString(),
+            },
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -149,6 +155,7 @@ Deno.serve(async (req) => {
         if (error) throw error;
 
         let winningNumbers: number[] = [];
+        let pote = 0;
         if (date) {
           const { data: results } = await supabaseAdmin
             .from("daily_results_pollo_lleno")
@@ -160,6 +167,20 @@ Deno.serve(async (req) => {
           if (results?.numbers) {
             winningNumbers = results.numbers;
           }
+
+          // Pote del día: el amount_pot más reciente cuyo created_at <= fin del día seleccionado
+          const { end: dayEnd } = toVETRange(date);
+          const { data: potData } = await supabaseAdmin
+            .from("pollo_lleno_pot")
+            .select("amount_pot")
+            .lte("created_at", dayEnd)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+
+          if (potData?.amount_pot) {
+            pote = Number(potData.amount_pot) * 0.65;
+          }
         }
 
         return new Response(
@@ -169,6 +190,7 @@ Deno.serve(async (req) => {
             page,
             totalPages: Math.ceil((count ?? 0) / pageSize),
             winningNumbers,
+            pote,
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );

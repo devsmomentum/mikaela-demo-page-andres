@@ -47,6 +47,7 @@ export interface HistoryResponse {
   page: number;
   totalPages: number;
   winningNumbers: number[];
+  pote: number;
 }
 
 // --- UTILIDADES ---
@@ -104,7 +105,7 @@ export const lotteryApi = {
       // 2. Resultados extraordinarios desde pollo_lleno
       let extraordinaryFigures: number[] = [];
       try {
-        const { data: plData } = await supabase.functions.invoke('pollo_lleno', {
+        const { data: plData } = await supabase.functions.invoke('pollo_lleno_results', {
           body: { action: 'GET_RESULTS', payload: { date } }
         });
         const arr = Array.isArray(plData) ? plData : [];
@@ -129,7 +130,7 @@ export const lotteryApi = {
    */
   getMetrics: async (): Promise<LotteryMetrics> => {
     try {
-      const { data, error } = await supabase.functions.invoke('pollo_lleno', {
+      const { data, error } = await supabase.functions.invoke('pollo_lleno_results', {
         body: { action: 'GET_METRICS', payload: {} }
       });
       if (error) throw error;
@@ -149,7 +150,7 @@ export const lotteryApi = {
    */
   getRecentTickets: async (limit: number = 5): Promise<RecentTicket[]> => {
     try {
-      const { data, error } = await supabase.functions.invoke('pollo_lleno', {
+      const { data, error } = await supabase.functions.invoke('pollo_lleno_results', {
         body: { action: 'GET_RECENT_TICKETS', payload: { limit } }
       });
       if (error) throw error;
@@ -165,7 +166,7 @@ export const lotteryApi = {
    */
   getPolloLlenoResults: async (date: string): Promise<PolloLlenoResult | null> => {
     try {
-      const { data, error } = await supabase.functions.invoke('pollo_lleno', {
+      const { data, error } = await supabase.functions.invoke('pollo_lleno_results', {
         body: { action: 'GET_RESULTS', payload: { date } }
       });
       if (error) throw error;
@@ -182,14 +183,14 @@ export const lotteryApi = {
    */
   getHistory: async (params: GetHistoryParams): Promise<HistoryResponse> => {
     try {
-      const { data, error } = await supabase.functions.invoke('pollo_lleno', {
+      const { data, error } = await supabase.functions.invoke('pollo_lleno_results', {
         body: { action: 'GET_HISTORY', payload: params }
       });
       if (error) throw error;
       return data as HistoryResponse;
     } catch (err) {
       console.error('[LotteryAPI] Error getHistory:', err);
-      return { data: [], total: 0, page: 1, totalPages: 0, winningNumbers: [] };
+      return { data: [], total: 0, page: 1, totalPages: 0, winningNumbers: [], pote: 0 };
     }
   },
 };
