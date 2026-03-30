@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 
 export interface LotteryMetrics {
   pote: number;
+  previousPote: number;
   amountPotRaw: number;
   ticketsSold: number;
 }
@@ -136,12 +137,13 @@ export const lotteryApi = {
       if (error) throw error;
       return {
         pote: data?.pote ?? 0,
+        previousPote: data?.previous_pote ?? 0,
         amountPotRaw: data?.amount_pot_raw ?? 0,
         ticketsSold: data?.tickets_sold ?? 0,
       };
     } catch (err) {
       console.error('[LotteryAPI] Error getMetrics:', err);
-      return { pote: 0, amountPotRaw: 0, ticketsSold: 0 };
+      return { pote: 0, previousPote: 0, amountPotRaw: 0, ticketsSold: 0 };
     }
   },
 

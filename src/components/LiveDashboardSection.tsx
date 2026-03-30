@@ -17,7 +17,7 @@ import { lotteryApi, type LotteryMetrics, type RecentTicket, type HistoryTicket 
 
 export function LiveDashboardSection() {
   // --- State from BD ---
-  const [metrics, setMetrics] = useState<LotteryMetrics>({ pote: 0, amountPotRaw: 0, ticketsSold: 0 })
+  const [metrics, setMetrics] = useState<LotteryMetrics>({ pote: 0, previousPote: 0, amountPotRaw: 0, ticketsSold: 0 })
   const [feed, setFeed] = useState<RecentTicket[]>([])
   const [winningNumbers, setWinningNumbers] = useState<number[]>([])
   const [historyData, setHistoryData] = useState<HistoryTicket[]>([])

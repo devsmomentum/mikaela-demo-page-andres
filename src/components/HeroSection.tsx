@@ -72,18 +72,24 @@ const GAME_MODES = [
 // Componente visual para Pollo Lleno (Cuenta regresiva + Monto)
 const PolloLlenoContent = ({ timeLeft }) => {
 
-    const [pote, setPote] = useState(0);
+    const [metrics, setMetrics] = useState({ pote: 0, previousPote: 0 });
 
     // Fetch real pot from BD on mount & every 30s
     useEffect(() => {
-      const fetchPote = async () => {
+      const fetchMetrics = async () => {
         const data = await lotteryApi.getMetrics();
-        setPote(data.pote);
+        setMetrics({ pote: data.pote, previousPote: data.previousPote });
       };
-      fetchPote();
-      const interval = setInterval(fetchPote, 30_000);
+      fetchMetrics();
+      const interval = setInterval(fetchMetrics, 30_000);
       return () => clearInterval(interval);
     }, []);
+
+    const { pote, previousPote } = metrics;
+    let percentageIncrease = 0;
+    if (previousPote > 0 && pote > previousPote) {
+        percentageIncrease = ((pote - previousPote) / previousPote) * 100;
+    }
 
     return (
         <div className="w-full flex flex-col gap-3 mt-1 text-center">
@@ -100,9 +106,11 @@ const PolloLlenoContent = ({ timeLeft }) => {
                     {pote.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
                 </div>
                 
-                <div className="mt-2 text-[10px] px-3 py-0.5 rounded-full bg-yellow-50/20 text-yellow-300 border border-yellow-300 font-medium">
-                    +2.5% vs ayer
-                </div>
+                {percentageIncrease > 0 && (
+                    <div className="mt-2 text-[10px] px-3 py-0.5 rounded-full bg-yellow-50/20 text-yellow-300 border border-yellow-300 font-medium">
+                        +{percentageIncrease.toFixed(1)}% vs ayer
+                    </div>
+                )}
             </div>
 
             {/* 1. SECCIÓN CUENTA REGRESIVA - Fondo Verde Oscuro */}

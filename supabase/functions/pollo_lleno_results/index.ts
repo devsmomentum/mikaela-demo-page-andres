@@ -9,14 +9,11 @@ const corsHeaders = {
 // Venezuela es UTC-4 (sin DST). Para convertir una fecha local VET a rango UTC:
 // Medianoche VET = 04:00 UTC del mismo día
 // 23:59:59 VET  = 03:59:59 UTC del día siguiente
+// Hasta las 7:59:59 PM VET (momento del sorteo a las 8 PM)
 function toVETRange(dateStr: string): { start: string; end: string } {
-  const d = new Date(dateStr + "T12:00:00Z");
-  const nextDay = new Date(d);
-  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
-  const nextDayStr = nextDay.toISOString().split("T")[0];
   return {
     start: `${dateStr}T04:00:00.000Z`,
-    end: `${nextDayStr}T03:59:59.999Z`,
+    end: `${dateStr}T23:59:59.999Z`,
   };
 }
 
@@ -41,23 +38,26 @@ Deno.serve(async (req) => {
 
     switch (action) {
       case "GET_METRICS": {
-        // Pote: 65% del amount_pot más reciente
+        const today = todayVET();
+        const { start: dayStart, end: dayEnd } = toVETRange(today);
+
+        // Pote: 65% del amount_pot más reciente del día de hoy unicamente. Si no hay valor nuevo hoy, pote es 0.
         const { data: potData, error: potError } = await supabaseAdmin
           .from("pollo_lleno_pot")
           .select("amount_pot")
+          .gte("created_at", dayStart)
+          .lte("created_at", dayEnd)
           .order("created_at", { ascending: false })
           .limit(1)
           .single();
 
-        if (potError) throw potError;
+        // 116 es 'Result contains 0 rows'
+        if (potError && potError.code !== 'PGRST116') throw potError;
 
         const amountPot = Number(potData?.amount_pot ?? 0);
         const pote = amountPot * 0.65;
 
-        // Tickets vendidos hoy en hora Venezuela (UTC-4)
-        const today = todayVET();
-        const { start: dayStart, end: dayEnd } = toVETRange(today);
-
+        // Tickets vendidos hoy en hora Venezuela (UTC-4) limitados a las 7:59 pm
         const { count: ticketsSold, error: ticketsError } = await supabaseAdmin
           .from("bets_item_pollo_lleno")
           .select("id", { count: "exact", head: true })
@@ -66,9 +66,22 @@ Deno.serve(async (req) => {
 
         if (ticketsError) throw ticketsError;
 
+        // Pote anterior: el amount_pot más reciente registrado antes de hoy
+        const { data: prevPotData } = await supabaseAdmin
+          .from("pollo_lleno_pot")
+          .select("amount_pot")
+          .lt("created_at", dayStart)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        const previousAmountPot = Number(prevPotData?.amount_pot ?? 0);
+        const previousPote = previousAmountPot * 0.65;
+
         return new Response(
           JSON.stringify({
             pote,
+            previous_pote: previousPote,
             amount_pot_raw: amountPot,
             tickets_sold: ticketsSold ?? 0,
             _debug: {
@@ -168,15 +181,19 @@ Deno.serve(async (req) => {
             winningNumbers = results.numbers;
           }
 
-          // Pote del día: el amount_pot más reciente cuyo created_at <= fin del día seleccionado
-          const { end: dayEnd } = toVETRange(date);
-          const { data: potData } = await supabaseAdmin
+          // Pote del día: el amount_pot más registrado exactamente en ese mismo día seleccionado
+          // Si no hay pote registrado en el día, será cero
+          const { start: dayStart, end: dayEnd } = toVETRange(date);
+          const { data: potData, error: potError } = await supabaseAdmin
             .from("pollo_lleno_pot")
             .select("amount_pot")
+            .gte("created_at", dayStart)
             .lte("created_at", dayEnd)
             .order("created_at", { ascending: false })
             .limit(1)
             .single();
+
+          if (potError && potError.code !== 'PGRST116') throw potError;
 
           if (potData?.amount_pot) {
             pote = Number(potData.amount_pot) * 0.65;
